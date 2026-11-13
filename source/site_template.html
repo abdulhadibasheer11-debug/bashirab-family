@@ -27,6 +27,7 @@ nav a.on,nav a:hover{background:rgba(255,255,255,.14);color:#fff}
 .results.show{display:block}
 .results button{display:block;width:100%;text-align:right;border:0;background:none;padding:9px 14px;font:inherit;cursor:pointer;border-bottom:1px solid #f0f2f3}
 .results button:hover,.results button.act{background:#f2f7f8}
+.rnote{padding:8px 14px;font-size:13px;color:var(--muted);background:#fafbfb}
 .results small{color:var(--muted);display:block;font-size:12px}
 main{max-width:1000px;margin:auto;padding:22px 16px 60px}
 h1{font-family:Amiri,serif;font-size:34px;margin:0 0 4px;color:var(--teal)}
@@ -158,24 +159,74 @@ function chip(p, extra="", label){
 const unk = t => `<span class="chip dash">؟ ${esc(t)}</span>`;
 
 // ---------- بحث
+// تطبيع الكتابة: الهمزات، الياء والألف المقصورة، التاء المربوطة، التشكيل، المسافات، و"بن/بنت"
+function norm(s){
+  return String(s || "").replace(/[ً-ْٰـ]/g, "")
+    .replace(/[أإآٱ]/g, "ا").replace(/ؤ/g, "و").replace(/ئ/g, "ي").replace(/ء/g, "")
+    .replace(/ى/g, "ي").replace(/ة/g, "ه")
+    .split(/\s+/).filter(w => w && !["بن","ابن","بنت","ابنه","بنه","ولد"].includes(w)).join("");
+}
+function editDist(a, b){ // مسافة التحرير (لأخطاء الكتابة البسيطة)
+  const d = Array.from({length: a.length + 1}, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+const SKEY = {};
+function skeys(p){ // الاسم مع نسبه من جهة الأب، ومن جهة الأم
+  if (SKEY[p.id]) return SKEY[p.id];
+  const viaMother = p.mother && P[p.mother] ? norm(p.name) + norm(lineage(P[p.mother])) : "";
+  return SKEY[p.id] = {name: norm(p.name), line: norm(lineage(p)), mline: viaMother};
+}
+const MAXR = 8;
+const nRes = n => n === 2 ? "نتيجتان" : `${AR(n)} ${n >= 3 && n <= 10 ? "نتائج" : "نتيجة"}`;
 function searchList(q){
-  q = q.trim().replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي");
-  if (!q) return [];
-  const norm = s => s.replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي");
-  return DATA.people.filter(p => norm(lineage(p)).includes(q) || norm(p.name).includes(q))
-    .sort((a,b) => (norm(a.name).startsWith(q)?0:1) - (norm(b.name).startsWith(q)?0:1)).slice(0, 30);
+  q = norm(q);
+  if (!q) return {items: [], more: 0};
+  const scored = [];
+  DATA.people.forEach(p => {
+    const k = skeys(p); let s = -1;
+    if (k.name === q) s = 0;                                         // الاسم نفسه
+    else if (k.line.startsWith(q) || k.mline.startsWith(q)) s = 1;   // الاسم ثم الأب ثم الجد…
+    else if (k.name.startsWith(q)) s = 2;                            // بداية الاسم
+    else if (q.length >= 3 && (k.line.includes(q) || k.mline.includes(q))) s = 3;
+    if (s >= 0) scored.push({p, s, len: k.line.length});
+  });
+  if (!scored.length && q.length >= 3) { // لا نتائج: نجرب التسامح مع خطأ كتابة بسيط
+    const tol = q.length >= 8 ? 2 : 1;
+    DATA.people.forEach(p => { const k = skeys(p);
+      const dd = Math.min(...[k.line, k.mline].filter(Boolean).map(l => editDist(q, l.slice(0, q.length))),
+                          ...[k.line, k.mline].filter(Boolean).map(l => editDist(q, l.slice(0, q.length + 1))),
+                          ...[k.line, k.mline].filter(Boolean).map(l => editDist(q, l.slice(0, Math.max(q.length - 1, 1)))));
+      if (dd <= tol) scored.push({p, s: 4 + dd, len: k.line.length}); });
+  }
+  scored.sort((x, y) => x.s - y.s || x.len - y.len);
+  // إن وُجد من يبدأ اسمه بما كُتب، لا نعرض من يرد الاسم في نسبه فقط
+  if (scored.length && scored[0].s <= 2) scored.splice(0, scored.length, ...scored.filter(x => x.s <= 2));
+  return {items: scored.slice(0, MAXR).map(x => x.p), more: Math.max(0, scored.length - MAXR), fuzzy: scored.length && scored[0].s >= 4};
 }
 function wireSearch(box, onPick){
   const inp = box.querySelector("input"), res = box.querySelector(".results");
-  let items = [], act = -1;
+  let items = [], more = 0, fuzzy = false;
+  const live = document.getElementById("live");
   const draw = () => {
-    res.innerHTML = items.map((p,i) => `<button data-i="${i}" class="${i===act?'act':''}">${esc(p.name)} <span aria-hidden="true">${SYM[p.gender]}${p.dead?' †':''}</span><small>${esc(shortName(p,6))}${p.dead ? (isF(p)?"، رحمها الله":"، رحمه الله") : ""}</small></button>`).join("")
-      || (inp.value.trim() ? `<button disabled>لا توجد نتائج</button>` : "");
+    res.innerHTML = (fuzzy ? `<div class="rnote">لم نجد الاسم كما كُتب، هل تقصد:</div>` : "") +
+      items.map((p,i) => `<button data-i="${i}">${esc(p.name)} <span aria-hidden="true">${SYM[p.gender]}${p.dead?' †':''}</span><small>${esc(shortName(p,6))}${p.dead ? (isF(p)?"، رحمها الله":"، رحمه الله") : ""}</small></button>`).join("")
+      + (more ? `<div class="rnote">وهناك ${AR(more)} غيرهم. اكتب اسم الأب بعد الاسم لتضييق البحث.</div>` : "")
+      || (inp.value.trim() ? `<div class="rnote">لا توجد نتائج. جرّب الاسم الأول فقط.</div>` : "");
     res.classList.toggle("show", !!inp.value.trim());
   };
-  const live = document.getElementById("live");
-  inp.addEventListener("input", () => { items = searchList(inp.value); act = -1; draw();
-    live.textContent = inp.value.trim() ? (items.length ? `${AR(items.length)} نتيجة. اضغط السهم لأسفل للتنقل بينها.` : "لا توجد نتائج") : ""; });
+  const say = () => {
+    if (!inp.value.trim()) { live.textContent = ""; return; }
+    if (!items.length) { live.textContent = "لا توجد نتائج"; return; }
+    const n = items.length + more;
+    live.textContent = (fuzzy ? "لم نجد الاسم كما كُتب، وهناك أسماء قريبة. " : "") +
+      (n === 1 ? `نتيجة واحدة: ${shortName(items[0], 5)}. اضغط Enter لاختياره.` :
+       `${nRes(n)}. اضغط السهم لأسفل للتنقل بينها` + (more ? "، أو اكتب اسم الأب لتضييق البحث." : "."));
+  };
+  let t;
+  inp.addEventListener("input", () => { ({items, more, fuzzy} = searchList(inp.value)); draw(); clearTimeout(t); t = setTimeout(say, 350); });
   res.addEventListener("keydown", e => {
     const bs = [...res.querySelectorAll("button[data-i]")], i = bs.indexOf(document.activeElement);
     if (e.key === "ArrowDown") { (bs[i+1] || bs[i]).focus(); e.preventDefault(); }
@@ -186,7 +237,14 @@ function wireSearch(box, onPick){
   res.addEventListener("click", e => { const b = e.target.closest("button[data-i]"); if (b) pick(items[+b.dataset.i]); });
   inp.addEventListener("keydown", e => {
     if (e.key === "ArrowDown") { const b = res.querySelector("button[data-i]"); if (b) { b.focus(); e.preventDefault(); } }
-    else if (e.key === "Enter" && items.length) { pick(items[Math.max(act,0)]); }
+    else if (e.key === "Enter") {
+      e.preventDefault();
+      ({items, more, fuzzy} = searchList(inp.value)); draw();
+      if (items.length === 1 && !fuzzy) pick(items[0]);          // نتيجة واحدة مؤكدة: تُختار مباشرة
+      else if (items.length) { res.querySelector("button[data-i]").focus();   // أكثر من نتيجة: ننقل إلى القائمة ليختار
+        live.textContent = `${nRes(items.length + more)}، اختر بالأسهم ثم Enter.`; }
+      else say();
+    }
     else if (e.key === "Escape") { res.classList.remove("show"); }
   });
   box.addEventListener("focusout", () => setTimeout(() => { if (!box.contains(document.activeElement)) res.classList.remove("show"); }, 150));
@@ -368,7 +426,17 @@ function relationLabel(a, b, A, B, top){
     const kinF = isM(xb) ? (isM(xa) ? "عمها" : "خالها") : (isM(xa) ? "عمتها" : "خالتها");
     return `${pb.name} ${ab(pb,"ابن","بنت")} ${isF(pa) ? kinF : kin} — أبناء عمومة من الدرجة الأولى`;
   }
-  return `يلتقيان في ${P[top].name}: ${pa.name} من الجيل ${AR(da)} تحته، و${pb.name} من الجيل ${AR(db)} تحته`;
+  const up = (p, n) => n === 1 ? ab(p,"والد","والدة") : n === 2 ? ab(p,"جد","جدة") : ab(p,"جد","جدة") + ` من الدرجة ${AR(n-1)}`;
+  if (da === 1 || db === 1) { // أحدهما أخو جدّ الآخر
+    const [x, cy, dy] = da === 1 ? [pa, cb, db] : [pb, ca, da];
+    const y = da === 1 ? pb : pa, sib = P[cy[1]];
+    return `${x.name} ${ab(x,"أخو","أخت")} ${sib.name}، ${up(sib, dy-1)} ${y.name}`;
+  }
+  const n = Math.min(da, db) - 1, ord = ["","الأولى","الثانية","الثالثة","الرابعة","الخامسة"][n] || AR(n);
+  if (da === db) return `${pa.name} و${pb.name} أبناء عمومة من الدرجة ${ord}`;
+  const [old, yng, cyng, dold, dyng] = da < db ? [pa, pb, cb, da, db] : [pb, pa, ca, db, da];
+  const anc = P[cyng[dold]];
+  return `${old.name} و${anc.name} (${up(anc, dyng-dold)} ${yng.name}) أبناء عمومة من الدرجة ${ord}`;
 }
 function viewRelation(){
   app.innerHTML = `<h1>صلة القرابة</h1>
@@ -378,14 +446,18 @@ function viewRelation(){
       <div class="amp" aria-hidden="true">⟷</div>
       <div class="pick"><label for="inb">الشخص الثاني</label><div class="searchbox" id="pb"><input id="inb" type="search" placeholder="اكتب اسماً…" autocomplete="off"><div class="results"></div></div><div class="sel" id="sb"></div></div>
     </div></div>
-    <div id="relout" aria-live="polite"></div>
+    <div id="relout"></div>
     <div class="panel"><b>جرّب:</b> <div class="chips" style="margin-top:6px">
       <button class="chip u" data-x="1.10.4.3.1.1" data-y="1.10.3.3">صلاح ابن شيماء ⟷ زبير</button>
       <button class="chip u" data-x="1.10.1.1.5" data-y="1.10.1.3.1">عبد الهادي ⟷ علاء الدين</button>
       <button class="chip u" data-x="1.10.6.1.1" data-y="1.10.4.3">محمد ابن فاطمة ⟷ الطيب</button>
     </div></div>`;
-  wireSearch(document.getElementById("pa"), (p, inp) => { inp.value = ""; REL.a = p.id; drawRel(); });
-  wireSearch(document.getElementById("pb"), (p, inp) => { inp.value = ""; REL.b = p.id; drawRel(); });
+  const live = document.getElementById("live");
+  wireSearch(document.getElementById("pa"), (p, inp) => { inp.value = ""; REL.a = p.id; drawRel();
+    if (!REL.b) { live.textContent = `اخترت ${shortName(p, 4)}. اكتب الآن اسم الشخص الثاني.`; document.getElementById("inb").focus(); } });
+  wireSearch(document.getElementById("pb"), (p, inp) => { inp.value = ""; REL.b = p.id; drawRel();
+    if (!REL.a) { live.textContent = `اخترت ${shortName(p, 4)}. اكتب الآن اسم الشخص الأول.`; document.getElementById("ina").focus(); } });
+  if (REL.a && !REL.b) setTimeout(() => { live.textContent = `الشخص الأول: ${shortName(P[REL.a], 4)}. اكتب اسم الشخص الثاني.`; document.getElementById("inb").focus(); }, 50);
   app.querySelectorAll("[data-x]").forEach(b => b.onclick = () => { REL.a = b.dataset.x; REL.b = b.dataset.y; drawRel(); });
   drawRel();
 }
@@ -395,10 +467,11 @@ function drawRel(){
   if (REL.a) sa.insertAdjacentHTML("afterbegin", '<span class="sr-only">الشخص الأول المختار: </span>');
   sb.innerHTML = REL.b ? chip(P[REL.b], "", shortName(P[REL.b], 5)) : `<span class="empty">لم يُختر بعد</span>`;
   if (!REL.a || !REL.b) { out.innerHTML = ""; return; }
-  if (REL.a === REL.b) { out.innerHTML = `<div class="panel">اخترت الشخص نفسه مرتين.</div>`; return; }
+  const live = document.getElementById("live");
+  if (REL.a === REL.b) { out.innerHTML = `<div class="panel">اخترت الشخص نفسه مرتين.</div>`; live.textContent = "اخترت الشخص نفسه مرتين."; return; }
   const A = ancestors(REL.a), B = ancestors(REL.b);
   const common = [...A.keys()].filter(k => B.has(k)).map(k => ({k, s: A.get(k).d + B.get(k).d}));
-  if (!common.length) { out.innerHTML = `<div class="panel">لا يوجد جد مشترك مسجل بينهما بعد.</div>`; return; }
+  if (!common.length) { out.innerHTML = `<div class="panel">لا يوجد جد مشترك مسجل بينهما بعد.</div>`; live.textContent = "لا يوجد جد مشترك مسجل بينهما بعد."; return; }
   common.sort((x, y) => x.s - y.s);
   // أقرب الأجداد المشتركين، مع استبعاد من هو جد لجد مشترك آخر
   const tops = [];
@@ -413,11 +486,13 @@ function drawRel(){
     const srPath = `<p class="sr-only">الطريق من الطرف الأول: ${esc(say(ca))}. والطريق من الطرف الثاني: ${esc(say(cb))}.</p>`;
     return `<div class="panel">
       ${i ? `<div class="grouplbl">وتربطهما صلة أخرى من جهة ثانية:</div>` : ""}
-      <h2 class="verdict">${esc(relationLabel(REL.a, REL.b, A, B, top))}</h2>
+      <h2 class="verdict" tabindex="-1">${esc(relationLabel(REL.a, REL.b, A, B, top))}</h2>
       <div class="apex"><span class="sr-only">الجد المشترك: </span>${chip(P[top], "hl")}<div class="cnt" aria-hidden="true">الجد المشترك</div></div>
       ${srPath}<div class="path">${ca.length > 1 ? col(ca) : ""}${cb.length > 1 ? col(cb) : ""}</div>
     </div>`;
-  }).join("");
+  }).join("") + `<button class="btn ghost" type="button" id="relreset">ابحث عن شخصين آخرين</button>`;
+  out.querySelector(".verdict").focus();
+  document.getElementById("relreset").onclick = () => { REL.a = REL.b = null; drawRel(); document.getElementById("ina").focus(); };
 }
 
 // ---------- أرسل تصحيحاً (يصل إلى الإيميل عبر FormSubmit)
