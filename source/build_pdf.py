@@ -11,7 +11,7 @@ MAR = '<span class="mar">⚭</span>'
 
 # ---------- أرقام الصفحات
 ORDER = ["cover", "intro", "root", "ch1", "amna", "mhd", "bashir", "khidr", "others",
-         "liba", "dahaba", "ali", "ch2", "monem1", "monem2", "index"]
+         "liba", "dahaba", "ali", "ch2", "nemat", "monem1", "monem2", "ch3", "ch4", "index"]
 PG = {k: i + 1 for i, k in enumerate(ORDER)}
 def pg(k): return ar(PG[k])
 
@@ -114,12 +114,17 @@ for c in children("1"):
     groups.setdefault(c["group"], []).append(c)
 glis = []
 for g, ks in groups.items():
-    CH = {"1.10": ("الفصل الأول", "ch1"), "1.12": ("الفصل الثاني", "ch2")}
-    chips = "".join(chip(c, [f"{CH[c['id']][0]} · صفحة {pg(CH[c['id']][1])}"] if c["id"] in CH else [],
-                         "hl" if c["id"] in CH else "") for c in ks)
-    glis.append(li(grp(g + " (الاسم غير معروف)"), below=stack(chips)))
+    CH = {"1.10": ("الفصل الأول", "ch1"), "1.12": ("الفصل الثاني", "ch2"), "1.11": ("الفصل الثالث", "ch3")}
+    PART = {"1.5", "1.6", "1.8", "1.9", "1.15"}
+    def rsubs(c):
+        if c["id"] in CH: return [f"{CH[c['id']][0]} · صفحة {pg(CH[c['id']][1])}"]
+        if c["id"] in PART: return [f"بيانات جزئية · صفحة {pg('ch4')}"]
+        return []
+    chips = "".join(chip(c, rsubs(c), "hl" if c["id"] in CH else "") for c in ks)
+    glis.append(li(grp(g if "(" in g or not g.startswith("الزوجة") else g + " (الاسم غير معروف)"), below=stack(chips)))
 page("root", tree(li(node(root, ["الجد الأكبر"], "rootnode"), glis), 1.32) +
-     note("تقسيم الأبناء حسب الزوجات مبدئي، وأسماء الزوجات لم تُعرف بعد. "
+     note("زوجة الجد الأولى كلتوم رحمها الله، أم دياب وعثمان وعجائب. تقسيم بقية الأبناء حسب الزوجات مبدئي. "
+          "إخوة الجد: عبد الدائم وأحمد وحاكم، وشقيقه طمبل، رحمهم الله. "
           "عبد الله بن محمد بشير يُعرف أيضاً بعبدون. فروع بقية الأبناء تُجمع للإصدارات القادمة."),
      title="الشجرة الكبرى: الجد محمد بشير وأبناؤه")
 
@@ -232,22 +237,32 @@ page("ali", family_grid(by_id["1.10.6"], ["ابن بشير · من الزوجة 
 # ================= الفصل الثاني: فرع محمد عثمان
 CUR[0] = "ch2"
 MO = by_id["1.12"]
+REFS2 = {"1.12.2": lambda c: f"له زوجتان · الأبناء: {ar(len(children(c['id'])))} ← صفحة {pg('monem1')}",
+         "1.12.3": lambda c: f"أم بشير والفاضل وخضر وعواطف وأحلام وعبد القادر ← صفحة {pg('mhd')}",
+         "1.12.6": lambda c: f"الأبناء: {ar(len(children(c['id'])))} ← صفحة {pg('nemat')}"}
 cards = ""
 for c in children("1.12"):
     subs = [E(c["notes"]) if c["notes"] and c["id"] != "1.12.2" else ""]
     inner = ""
-    if c["id"] == "1.12.2":
-        subs.append(f"له زوجتان · الأبناء: {ar(len(children(c['id'])))} ← صفحة {pg('monem1')}")
-    elif children(c["id"]):
-        inner = stack("".join(chip(x, [E(x["group"])]) for x in children(c["id"])))
+    if c["id"] in REFS2:
+        subs.append(REFS2[c["id"]](c))
+        if c["id"] == "1.12.3": [mark(x) for x in children(c["id"])]
+    else:
+        inner = gchips(c)
     cards += f'<div class="card">{node(c, subs)}{inner}</div>'
 page("ch2", '<div class="chapter-head">الفصل الثاني</div>' +
-     f'<div style="zoom:1.3"><div class="fam-top">{node(MO, ["ابن الجد محمد بشير"], "head")}</div>'
+     f'<div style="zoom:1.0"><div class="fam-top">{node(MO, ["ابن الجد محمد بشير"], "head")}</div>'
      f'<div class="fgrid" style="grid-template-columns:repeat(3,minmax(0,1fr))">{cards}</div></div>' +
-     note("توفي من أبناء محمد عثمان: زينب وعبد المنعم وأم الملك ومملكة وحسن، رحمهم الله. "
-          "زوج زينب الثاني علي خيري هو حفيد الجد من فرع خيري بن محمد بشير. "
-          "؟ أبناء خالد ونعمات وعبد الغفار وحسين وبقية الإخوة تُضاف لاحقاً."),
+     note("زوجة محمد عثمان فاطمة حمد، أم أبنائه. توفي منهم: زينب وعبد المنعم وأم الملك ومملكة وحسن، رحمهم الله. "
+          "زوج زينب الثاني علي خيري حفيد الجد من فرع خيري. أم الملك زوجة محمد بن بشير، جد عبد الهادي. "
+          "سليم بن مملكة تزوج صفاء بنت نعمات."),
      title="فرع محمد عثمان بن محمد بشير")
+
+CUR[0] = "nemat"
+page("nemat", family_grid(by_id["1.12.6"], ["بنت محمد عثمان"], cols=4, zoom=1.25) +
+     note("زوجها الحاج بن شريف بن محمد بشير. آمنة تزوجت عبد الإله بن زينب (ابن خالتها)، "
+          "وصفاء تزوجت سليم بن مملكة (ابن خالتها)."),
+     title="أسرة نعمات بنت محمد عثمان")
 
 def monem_grid(ks, cols, zoom, head=True):
     cards = ""
@@ -275,8 +290,44 @@ page("monem2", monem_grid(mk2[5:], 3, 1.18, head=False) +
           "؟ اسما زوجتي عبد المنعم، وزوج حنان."),
      title="أسرة عبد المنعم بن محمد عثمان (تابع)")
 
+# ================= الفصل الثالث: فرع فضل
+CUR[0] = "ch3"
+cards = ""
+for c in children("1.11"):
+    if c["id"] == "1.11.2":
+        subs = [f"أبناؤه من آمنة بنت بشير ← صفحة {pg('amna')}"]; [mark(x) for x in children(c["id"])]; inner = ""
+    else:
+        subs = [E(c["notes"]) if c["notes"] else ""]; inner = gchips(c)
+    cards += f'<div class="card">{node(c, subs)}{inner}</div>'
+page("ch3", '<div class="chapter-head">الفصل الثالث</div>' +
+     f'<div style="zoom:1.15"><div class="fam-top">{node(by_id["1.11"], ["ابن الجد محمد بشير"], "head")}</div>'
+     f'<div class="fgrid" style="grid-template-columns:repeat(4,minmax(0,1fr))">{cards}</div></div>' +
+     note("أبناء فضل كلهم متوفون إلا مهدي ونصرة، رحمهم الله. "
+          f"محمد صلاح تزوج شيماء بنت الطيب ← صفحة {pg('liba')}. "
+          "؟ أبناء صلاح من الزوجة الثانية (٣ بنات وولدان)، وأبناء عبد الدائم وبشير ونصرة."),
+     title="فرع فضل بن محمد بشير")
+
+# ================= الفصل الرابع: بيانات جزئية من فروع أخرى
+CUR[0] = "ch4"
+def mini(pid, rows):
+    return f'<div class="cell">{tree(li(node(by_id[pid], [E(by_id[pid]["notes"])] if pid == "1.15" else []), below=stack(rows)), 1.2)}</div>'
+cells = [
+  mini("1.9", chip(by_id["1.9.1"], [spouse_txt(by_id["1.9.1"]), f"أبناؤه ← صفحة {pg('nemat')}"]) +
+              chip(by_id["1.9.2"], [spouse_txt(by_id["1.9.2"]), f"أبناؤه ← صفحة {pg('liba')}"])),
+  mini("1.5", chip(by_id["1.5.1"], [f"أبناؤه: {'، '.join(c['name'] for c in children('1.5.1'))} ← صفحة {pg('ch2')}"]) +
+              "".join(chip(c) for c in children("1.5") if c["id"] != "1.5.1") + unk(by_id["1.5"]["unknown"])),
+  mini("1.6", chip(by_id["1.6.1"], ["يُعرف بالحاج محمد", "ابنه عبد الله، وحفيده كمال زوج وداد بنت عبد المنعم ← صفحة " + pg('monem1')])),
+  mini("1.8", chip(by_id["1.8.1"], [spouse_txt(by_id["1.8.1"]), f"أبناؤه ← صفحة {pg('dahaba')}"])),
+]
+for x in ["1.6.1.1", "1.6.1.1.1", "1.15"]: mark(by_id[x])
+page("ch4", '<div class="chapter-head">الفصل الرابع</div><div class="grid2">' + "".join(cells) + '</div>' +
+     note("هذه فروع لم تُجمع بياناتها بعد، وفيها ما عُرف حتى الآن من خلال الزيجات بين الفروع. "
+          "شريف بن محمد بشير متوفى رحمه الله. "
+          "وعباس بن محمد بشير هاجر إلى مصر وتوفي فيها رحمه الله، ولم يكن له أبناء."),
+     title="من فروع أخرى (بيانات جزئية)")
+
 # الأزواج المذكورون نصاً
-for pid, k in [("1.11.1", "amna"), ("1.9.1", "liba"), ("1.8.1", "dahaba"), ("1.11.2.1", "liba"),
+for pid, k in [("1.11.2", "amna"), ("1.9.2", "liba"), ("1.8.1", "dahaba"), ("1.11.3.6", "liba"),
                ("1.5.1", "ch2"), ("1.5.1.1", "monem2"), ("1.6.1.1.1", "monem1")]:
     page_of.setdefault(pid, k)
 
@@ -322,13 +373,16 @@ toc = [("الشجرة الكبرى: الجد محمد بشير وأبناؤه", 
        ("أسرة ليبة بنت بشير", "liba", True), ("أسرة دهابة بنت بشير", "dahaba", True),
        ("أسرة علي بن بشير", "ali", True),
        ("الفصل الثاني: فرع محمد عثمان بن محمد بشير", "ch2", False),
+       ("أسرة نعمات بنت محمد عثمان", "nemat", True),
        ("أسرة عبد المنعم بن محمد عثمان", "monem1", True),
+       ("الفصل الثالث: فرع فضل بن محمد بشير", "ch3", False),
+       ("الفصل الرابع: من فروع أخرى (بيانات جزئية)", "ch4", False),
        ("فهرس الأسماء", "index", False)]
 tr = "".join(f'<tr><td class="{"ind" if i else ""}">{t}</td><td>{pg(k)}</td></tr>' for t, k, i in toc)
 page("intro", f"""
 <p>هذا الكتاب محاولة لجمع ذرية الجد <b>محمد بشير</b> في مكان واحد، حتى يعرف الأبناء والأحفاد أهلهم
 وصلة كل واحد منهم بالآخر. ولأن العائلة كبيرة ومتشعبة، قُسّم الكتاب إلى فصول: لكل فرع من فروع العائلة فصل خاص به.</p>
-<p>هذا هو <b>الإصدار الأول</b>، وفيه فرعا <b>بشير</b> و<b>محمد عثمان</b> ابني محمد بشير. وفيه أيضاً روابط مع فروع فضل وشريف وإدريس وخيري وعبد الله من خلال الزيجات.
+<p>هذا هو <b>الإصدار الأول</b>، وفيه فروع <b>بشير</b> و<b>محمد عثمان</b> و<b>فضل</b> أبناء محمد بشير، وما عُرف من فروع شريف وخيري وعبد الله وإدريس من خلال الزيجات.
 وستُضاف بقية الفروع في الإصدارات القادمة بإذن الله، إذ يصدر الكتاب مُحدَّثاً كل سنة.</p>
 <h2>دليل الرموز</h2>{legend}
 <h2>كيف تساهم؟</h2>

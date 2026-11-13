@@ -269,7 +269,7 @@ function viewHome(){
   const root = P[ROOT];
   const groups = {};
   kidsOf(root).forEach(k => (groups[k.group || ""] ||= []).push(k));
-  const documented = new Set(["1.10", "1.12"]);
+  const documented = new Set(["1.10", "1.12", "1.11"]);
   const dead = DATA.people.filter(p=>p.dead).length;
   const gens = Math.max(...DATA.people.map(p => { let d=1,q=p; while((q.father&&P[q.father])||(q.mother&&P[q.mother])){ q=P[q.father]||P[q.mother]; d++; } return d; }));
   app.innerHTML = `
@@ -284,14 +284,15 @@ function viewHome(){
     <h2>الجد محمد بشير وأبناؤه</h2>
     <div class="panel">
       <div style="margin-bottom:8px">${chip(root, "hl")} <span class="cnt">الجد الأكبر</span></div>
-      ${Object.entries(groups).map(([g, ks]) => `<div class="grouplbl">${esc(g)} (الاسم غير معروف)</div>
+      ${Object.entries(groups).map(([g, ks]) => `<div class="grouplbl">${esc(g)}${g.startsWith("الزوجة") && !g.includes("(") ? " (الاسم غير معروف)" : ""}</div>
         <div class="chips">${ks.map(k => chip(k, documented.has(k.id) ? "hl" : "")).join("")}</div>`).join("")}
-      <p class="empty" style="margin:12px 0 0">المحدد بإطار ذهبي فرعه موثّق في هذا الإصدار. تقسيم الأبناء حسب الزوجات مبدئي.</p>
+      <p class="empty" style="margin:12px 0 0">المحدد بإطار ذهبي فرعه موثّق في هذا الإصدار. تقسيم الأبناء حسب الزوجات مبدئي، والمؤكد أن كلتوم أم دياب وعثمان وعجائب.</p>
     </div>
     <h2>ابدأ من هنا</h2>
     <div class="chips">
       <a class="btn" href="${hashOf("1.10")}">فرع بشير بن محمد بشير</a>
       <a class="btn" href="${hashOf("1.12")}">فرع محمد عثمان بن محمد بشير</a>
+      <a class="btn" href="${hashOf("1.11")}">فرع فضل بن محمد بشير</a>
       <a class="btn ghost" href="#tree">تصفّح الشجرة كاملة</a>
       <a class="btn ghost" href="#relation">ما صلة القرابة بين شخصين؟</a>
     </div>
@@ -367,7 +368,7 @@ function viewPerson(id){
 }
 
 // ---------- الشجرة
-const OPEN = new Set(["1", "1.10", "1.10.1", "1.10.3", "1.10.4", "1.10.5", "1.10.6", "1.12", "1.12.2"]);
+const OPEN = new Set(["1", "1.10", "1.10.1", "1.10.3", "1.10.4", "1.10.5", "1.10.6", "1.12", "1.12.2", "1.11"]);
 function viewTree(){
   const seen = new Set();
   function node(p, depth){
