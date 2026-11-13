@@ -1,0 +1,90 @@
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "DejaVu Sans", "FreeSerif", sans-serif; color: #24323a; direction: rtl; }
+.page { width: 210mm; height: 297mm; padding: 16mm 14mm 14mm; position: relative; page-break-after: always; overflow: hidden; }
+.ptitle { font-size: 20px; font-weight: bold; color: #1f4e5f; border-bottom: 2px solid #c9a227; padding-bottom: 6px; margin-bottom: 14px; }
+.foot { position: absolute; bottom: 8mm; left: 14mm; right: 14mm; text-align: center; font-size: 9.5px; color: #8a979c; border-top: 1px solid #e1e6e8; padding-top: 4px; }
+h2 { font-size: 15px; color: #1f4e5f; margin: 16px 0 6px; }
+p { font-size: 12.5px; line-height: 1.9; margin: 4px 0; }
+.note { font-size: 11px; color: #6b5a1e; background: #fbf6e6; border-right: 3px solid #c9a227; padding: 6px 10px; margin-top: 14px; }
+
+/* الغلاف */
+.cover-page { background: #1f4e5f; color: #fff; }
+.cover { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 2px solid #c9a227; border-radius: 6px; }
+.cv-top { font-size: 14px; color: #e9d48a; margin-bottom: 40px; }
+.cv-mark { font-size: 46px; color: #c9a227; }
+.cover h1 { font-size: 34px; font-weight: normal; margin: 10px 0; line-height: 1.6; }
+.cover h1 span { font-size: 56px; font-weight: bold; color: #f3e3a6; }
+.cv-sub { font-size: 17px; margin-top: 8px; }
+.cv-ed { margin-top: 60px; font-size: 15px; border: 1px solid #c9a227; padding: 8px 22px; border-radius: 20px; }
+.cv-note { margin-top: 18px; font-size: 11px; color: #b9cdd3; }
+
+/* الرموز والمحتويات */
+.legend { border-collapse: collapse; font-size: 12px; }
+.legend td { padding: 3px 8px; }
+.legend td.big { font-size: 18px; text-align: center; }
+.toc { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.toc td { padding: 5px 4px; border-bottom: 1px dotted #b8c4c8; }
+.toc td:last-child { text-align: left; width: 40px; }
+.toc td.ind { padding-right: 24px; color: #4a5a61; }
+
+/* الشجرة */
+.tree { display: flex; justify-content: center; margin-top: 8px; }
+.tree ul { display: flex; justify-content: center; padding: 18px 0 0; margin: 0; position: relative; }
+.tree li { list-style: none; display: flex; flex-direction: column; align-items: center; position: relative; padding: 18px 4px 0; }
+.tree li::before, .tree li::after { content: ""; position: absolute; top: 0; width: 50%; height: 18px; border-top: 1.4px solid #8a9ea5; }
+.tree li::before { right: 50%; }
+.tree li::after { left: 50%; border-left: 1.4px solid #8a9ea5; }
+.tree li:first-child::after { border-top: none; }
+.tree li:last-child::before { border-top: none; }
+.tree li:only-child::before { display: none; }
+.tree ul ul::before { content: ""; position: absolute; top: 0; left: 50%; height: 18px; border-left: 1.4px solid #8a9ea5; }
+.tree > ul { padding-top: 0; }
+.tree > ul > li { padding-top: 0; }
+.tree > ul > li::before, .tree > ul > li::after { display: none; }
+
+.node { border: 1.6px solid; border-radius: 8px; padding: 6px 12px; text-align: center; white-space: nowrap; background: #fff; }
+.node .nm { font-size: 13.5px; font-weight: bold; }
+.node .sub { font-size: 10px; color: #56656b; margin-top: 2px; }
+.m { border-color: #3b7194; background: #eaf2f8; }
+.f { border-color: #b05a7d; background: #fbeef3; }
+.u { border-color: #9a9a9a; background: #f3f3f3; }
+.grp { border: 1.4px dashed #8a9ea5; background: #fff; font-size: 11px; color: #4a5a61; padding: 5px 10px; }
+.rootnode { border-width: 2.4px; border-color: #c9a227; background: #fdf8e7; padding: 8px 20px; }
+.rootnode .nm { font-size: 17px; }
+.sym { font-weight: normal; color: #6a7a80; }
+
+.stack { position: relative; margin-top: 14px; display: flex; flex-direction: column; gap: 4px; align-items: stretch; padding: 7px; border: 1px solid #d5dde0; border-radius: 8px; background: #fafbfb; }
+.stack::before { content: ""; position: absolute; top: -15px; left: 50%; height: 14px; border-left: 1.4px solid #8a9ea5; }
+.chip { border: 1.2px solid; border-radius: 6px; padding: 3px 9px; font-size: 11.5px; white-space: nowrap; text-align: center; }
+.chip .csub { display: block; font-size: 9px; color: #6b5a1e; }
+.chip.hl { border-color: #c9a227; border-width: 2px; background: #fdf3cf; font-weight: bold; }
+.dashed { border-style: dashed; color: #777; }
+
+.chapter-head { text-align: center; font-size: 12px; color: #c9a227; letter-spacing: 1px; margin-bottom: 4px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 10px; }
+.grid2 .cell { border: 1px solid #e3e8ea; border-radius: 10px; padding: 12px 6px 14px; }
+
+.missing { font-size: 12.5px; line-height: 1.9; padding-right: 22px; }
+.missing li { margin-bottom: 6px; }
+.index { column-count: 2; column-gap: 12mm; font-size: 11.5px; }
+.ix { display: flex; justify-content: space-between; border-bottom: 1px dotted #c3ccd0; padding: 3.5px 0; break-inside: avoid; }
+.ixp { color: #1f4e5f; font-weight: bold; padding-right: 8px; }
+
+.mar { font-size: 1.35em; color: #b05a7d; }
+.grid2 .cell { min-height: 95mm; display:flex; align-items:flex-start; justify-content:center; }
+
+.dead { color: #7a4b2a; font-weight: bold; }
+.head { border-width: 2.4px; border-color: #c9a227; background: #fdf8e7; padding: 8px 20px; }
+.head .nm { font-size: 16px; }
+.fam-top { display: flex; justify-content: center; position: relative; padding-bottom: 14px; }
+.fam-top::after { content: ""; position: absolute; bottom: 0; left: 50%; height: 14px; border-left: 1.4px solid #8a9ea5; }
+.fgrid { display: grid; gap: 14px 10px; border: 1.4px solid #c5d0d4; border-radius: 12px; padding: 14px 10px; background: #fbfcfc; }
+.card { position: relative; display: flex; flex-direction: column; align-items: stretch; }
+.card { min-width: 0; }
+.card > .node { white-space: normal; }
+.card .stack { margin-top: 10px; }
+.chip .csub { white-space: normal; line-height: 1.5; }
+.chip.big { font-size: 13px; padding: 5px 12px; }
+.chip.big .csub { font-size: 9.5px; color: #56656b; }
+.card .chip, .card .node { white-space: normal; }
