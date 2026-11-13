@@ -1,6 +1,6 @@
 import sys, html
 sys.path.insert(0, "/home/claude/family")
-from data import people, by_id, children, full_name, missing
+from data import people, by_id, children, full_name
 
 AR = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
 def ar(n): return str(n).translate(AR)
@@ -11,7 +11,7 @@ MAR = '<span class="mar">⚭</span>'
 
 # ---------- أرقام الصفحات
 ORDER = ["cover", "intro", "root", "ch1", "amna", "mhd", "bashir", "khidr", "others",
-         "liba", "dahaba", "ali", "missing", "index"]
+         "liba", "dahaba", "ali", "index"]
 PG = {k: i + 1 for i, k in enumerate(ORDER)}
 def pg(k): return ar(PG[k])
 
@@ -228,12 +228,6 @@ page("ali", family_grid(by_id["1.10.6"], ["ابن بشير · من الزوجة 
           f"وأنجبت منه محمداً، ثم تزوجت مرة أخرى وأنجبت سميرة."),
      title="أسرة علي بن بشير")
 
-# ================= ١٣ ما ينقصنا
-CUR[0] = "missing"
-items = "".join(f"<li>{E(q)}</li>" for q in missing)
-page("missing", '<p>هذه المعلومات نبحث عنها للإصدار القادم. إن كنت تعرف شيئاً منها فأخبرنا به:</p>'
-     f'<ol class="missing">{items}</ol>', title="ما ينقصنا")
-
 # الأزواج المذكورون نصاً
 for pid, k in [("1.11.1", "amna"), ("1.9.1", "liba"), ("1.8.1", "dahaba"), ("1.11.2.1", "liba")]:
     page_of.setdefault(pid, k)
@@ -274,7 +268,7 @@ toc = [("الشجرة الكبرى: الجد محمد بشير وأبناؤه", 
        ("أسرة بشير بن محمد", "bashir", True), ("أسرة خضر بن محمد", "khidr", True),
        ("أسر الفاضل وعواطف وأحلام وعبد القادر", "others", True),
        ("أسرة ليبة بنت بشير", "liba", True), ("أسرة دهابة بنت بشير", "dahaba", True),
-       ("أسرة علي بن بشير", "ali", True), ("ما ينقصنا", "missing", False),
+       ("أسرة علي بن بشير", "ali", True),
        ("فهرس الأسماء", "index", False)]
 tr = "".join(f'<tr><td class="{"ind" if i else ""}">{t}</td><td>{pg(k)}</td></tr>' for t, k, i in toc)
 page("intro", f"""
@@ -284,8 +278,8 @@ page("intro", f"""
 وستُضاف بقية الفروع في الإصدارات القادمة بإذن الله، إذ يصدر الكتاب مُحدَّثاً كل سنة.</p>
 <h2>دليل الرموز</h2>{legend}
 <h2>كيف تساهم؟</h2>
-<p>إن وجدت خطأً أو اسماً ناقصاً، أو عندك بيانات فرعك، فأرسلها إلى عبد الهادي بشير.
-وفي صفحة {pg('missing')} قائمة بالمعلومات التي نبحث عنها الآن.</p>
+<p>إن وجدت خطأً أو اسماً ناقصاً، أو عندك بيانات فرعك، فأرسلها إلينا من صفحة «أرسل تصحيحاً» في موقع العائلة،
+وسنضيفها في الإصدار القادم بإذن الله.</p>
 <h2>محتويات الكتاب</h2><table class="toc">{tr}</table>
 """, title="مقدمة")
 

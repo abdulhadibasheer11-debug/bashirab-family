@@ -1,6 +1,6 @@
 import sys
 sys.path.insert(0, "/home/claude/family")
-from data import people, children, missing
+from data import people, children
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.worksheet.datavalidation import DataValidation
@@ -93,7 +93,7 @@ lines = [
     ("5) يجب أن يكون صف الأب أو الأم فوق صف الابن (وهذا يحدث تلقائياً عند الإضافة في الأسفل).", False),
     ("6) إن عرفت أن لشخص أبناء لكن لا تعرف أسماءهم، اكتب ذلك في عمود «أبناء لم تُسجَّل أسماؤهم» في صفه، مثل: بنتان وولد.", False),
     ("7) عمود «متوفى»: اختر «نعم» لمن توفي رحمه الله.", False),
-    ("8) إن لم تعرف معلومة اتركها فارغة، وإن كانت مهمة فأضفها في ورقة «ما ينقصنا».", False),
+    ("8) إن لم تعرف معلومة اتركها فارغة.", False),
     ("", False),
     ("الأعمدة", True),
     ("الأعمدة ذات العنوان الأزرق الداكن: تُملأ يدوياً. الأعمدة الرمادية: تلقائية.", False),
@@ -111,25 +111,6 @@ for i, (t, b) in enumerate(lines, 1):
     c = g.cell(row=i, column=1, value=t)
     c.font = Font(name=F, size=13 if b else 11, bold=b, color="1F4E5F" if b else "000000")
     c.alignment = Alignment(horizontal="right", wrap_text=True)
-
-# ---- ما ينقصنا
-m = wb.create_sheet("ما ينقصنا")
-m.sheet_view.rightToLeft = True
-m.column_dimensions["A"].width = 6
-m.column_dimensions["B"].width = 90
-m.column_dimensions["C"].width = 45
-for c, h in enumerate(["#", "المعلومة الناقصة", "الإجابة / من يعرف"], 1):
-    cell = m.cell(row=1, column=c, value=h)
-    cell.font = Font(name=F, bold=True, color="FFFFFF"); cell.fill = hfill
-    cell.alignment = Alignment(horizontal="center"); cell.border = brd
-for i, q in enumerate(missing, 2):
-    m.cell(row=i, column=1, value=i - 1)
-    m.cell(row=i, column=2, value=q)
-    for c in (1, 2, 3):
-        cell = m.cell(row=i, column=c)
-        cell.font = Font(name=F, size=11); cell.border = brd
-        cell.alignment = Alignment(horizontal="right" if c > 1 else "center",
-                                   vertical="center", wrap_text=True)
 
 wb.calculation.fullCalcOnLoad = True
 out = "/home/claude/family/out/بيانات عائلة البشيراب.xlsx"
