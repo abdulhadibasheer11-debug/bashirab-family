@@ -113,7 +113,6 @@ footer a{color:var(--teal2)}
     <a href="#" data-v="home">الرئيسية</a>
     <a href="#tree" data-v="tree">الشجرة</a>
     <a href="#relation" data-v="relation">صلة القرابة</a>
-    <a href="#missing" data-v="missing">ما ينقصنا</a>
     <a href="#fix" data-v="fix">أرسل تصحيحاً</a>
     <a href="__PDF__" download="__PDFNAME__">تحميل الكتاب PDF</a>
   </nav>
@@ -421,18 +420,12 @@ function drawRel(){
   }).join("");
 }
 
-function viewMissing(){
-  app.innerHTML = `<h1>ما ينقصنا</h1>
-    <p class="lead">هذه المعلومات نبحث عنها للتحديث القادم. إن كنت تعرف شيئاً منها فأرسله من <a href="#fix">صفحة التصحيح</a>.</p>
-    <div class="panel"><ol class="miss">${DATA.missing.map(m => `<li>${esc(m)}</li>`).join("")}</ol></div>`;
-}
-
 // ---------- أرسل تصحيحاً (يصل إلى الإيميل عبر FormSubmit)
 const FIX = {about: null};
 function viewFix(){
   const about = FIX.about && P[FIX.about];
   app.innerHTML = `<h1>أرسل تصحيحاً أو إضافة</h1>
-    <p class="lead">اكتب الخطأ الذي وجدته أو الأسماء الناقصة، وستصل رسالتك إلى عبد الهادي بشير ليضيفها في التحديث القادم.</p>
+    <p class="lead">اكتب الخطأ الذي وجدته أو الأسماء الناقصة، وستصل رسالتك إلينا لنضيفها في التحديث القادم بإذن الله.</p>
     <form class="panel fixform" id="fixform" novalidate>
       <div class="fld"><label for="f-name">اسمك الكامل <span aria-hidden="true">*</span></label>
         <input id="f-name" name="الاسم" required autocomplete="name"></div>
@@ -472,7 +465,7 @@ function viewFix(){
       document.getElementById("f-ok").focus();
     } catch (err) {
       send.disabled = false;
-      st.textContent = "لم تُرسل الرسالة. تأكد من الاتصال بالإنترنت وحاول مرة أخرى، أو أرسلها إلى عبد الهادي بشير مباشرة.";
+      st.textContent = "لم تُرسل الرسالة. تأكد من الاتصال بالإنترنت وحاول مرة أخرى.";
     }
   };
 }
@@ -483,7 +476,6 @@ function route(){
   if (h.startsWith("p-")) { v = "person"; viewPerson(h.slice(2).replace(/-/g, ".")); }
   else if (h === "tree") { v = "tree"; viewTree(); }
   else if (h === "relation") { v = "relation"; viewRelation(); }
-  else if (h === "missing") { v = "missing"; viewMissing(); }
   else if (h === "fix") { v = "fix"; viewFix(); }
   else viewHome();
   document.querySelectorAll("#nav a").forEach(a => { a.classList.toggle("on", a.dataset.v === v); a.toggleAttribute("aria-current", a.dataset.v === v); });

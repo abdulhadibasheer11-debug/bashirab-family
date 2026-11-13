@@ -6,7 +6,7 @@ from data import people, children, missing
 PDF = "bashirab-family-book.pdf"
 PDF_NAME = "شجرة عائلة البشيراب - الإصدار الأول 2026.pdf"
 # وجهة نموذج التصحيح في FormSubmit (الإيميل، أو الرمز البديل بعد التفعيل)
-FORM_TO = "abdelhadibasheer.11@gmail.com"
+FORM_TO = "646148ff6d3244c29aacb496f58ddab4"
 
 out = []
 for p in people:
@@ -14,7 +14,7 @@ for p in people:
                             "group", "spouse", "notes", "dead", "unknown")}
     q["kids"] = [c["id"] for c in children(p["id"])]
     out.append(q)
-data = {"people": out, "missing": missing, "updated": "١٣ نوفمبر ٢٠٢٦",
+data = {"people": out, "updated": "١٣ نوفمبر ٢٠٢٦",
         "pdf": PDF, "pdfName": PDF_NAME, "formTo": FORM_TO}
 tpl = open("/home/claude/family/site_template.html").read()
 html = (tpl.replace("__DATA__", json.dumps(data, ensure_ascii=False))
