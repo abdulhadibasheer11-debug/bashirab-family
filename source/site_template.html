@@ -96,6 +96,14 @@ footer{max-width:1000px;margin:auto;padding:0 16px 30px;color:var(--muted);font-
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 h1.pname{font-family:inherit;color:var(--ink)}
+.fixform{display:flex;flex-direction:column;gap:14px;max-width:620px}
+.fld label{display:block;font-size:14.5px;margin-bottom:4px;font-weight:500}
+.fld input,.fld select,.fld textarea{width:100%;padding:9px 12px;border:1px solid #b9c6ca;border-radius:10px;font:inherit;font-size:15px;background:#fff;color:var(--ink)}
+.fld textarea{resize:vertical}
+.fixform .btn{align-self:flex-start;padding:10px 26px}
+.fstatus{margin:0;color:#8a2f2f;min-height:1em}
+.fok{font-size:17px;color:var(--teal);font-weight:700;margin:0}
+footer a{color:var(--teal2)}
 </style>
 </head>
 <body>
@@ -106,6 +114,8 @@ h1.pname{font-family:inherit;color:var(--ink)}
     <a href="#tree" data-v="tree">الشجرة</a>
     <a href="#relation" data-v="relation">صلة القرابة</a>
     <a href="#missing" data-v="missing">ما ينقصنا</a>
+    <a href="#fix" data-v="fix">أرسل تصحيحاً</a>
+    <a href="__PDF__" download="__PDFNAME__">تحميل الكتاب PDF</a>
   </nav>
   <div class="searchbox" id="topsearch"><input type="search" placeholder="ابحث عن اسم…" aria-label="ابحث عن اسم في العائلة" autocomplete="off"><div class="results"></div></div>
 </div></header>
@@ -216,6 +226,12 @@ function viewHome(){
       <a class="btn ghost" href="#tree">تصفّح الشجرة كاملة</a>
       <a class="btn ghost" href="#relation">ما صلة القرابة بين شخصين؟</a>
     </div>
+    <h2>الكتاب والتصحيحات</h2>
+    <div class="chips">
+      <a class="btn" href="${DATA.pdf}" download="${esc(DATA.pdfName)}">تحميل كتاب العائلة PDF</a>
+      <a class="btn ghost" href="#fix">أرسل تصحيحاً أو إضافة</a>
+    </div>
+    <p class="empty" style="margin:8px 0 0">الكتاب يُحدَّث مرة في السنة. إن وجدت خطأً أو اسماً ناقصاً فأرسله من صفحة التصحيح.</p>
     <h2>دليل الرموز</h2>
     <div class="legend">
       <span class="chip m">اسم <span class="sym">♂</span></span> ذكر
@@ -258,7 +274,8 @@ function viewPerson(id){
         <div class="full">${esc(shortName(p, 8))}</div>
         <div class="facts">${facts.join("")}</div>
       </div>
-      <a class="btn ghost" href="#relation" onclick="REL.a='${p.id}'">صلة القرابة مع…</a>
+      <div class="chips"><a class="btn ghost" href="#relation" onclick="REL.a='${p.id}'">صلة القرابة مع…</a>
+      <a class="btn ghost" href="#fix" onclick="FIX.about='${p.id}'">أرسل تصحيحاً عن ${esc(p.name)}</a></div>
     </div></div>
     <section class="panel" aria-label="الأسرة"><div class="mini">
       ${parentsRow ? `<div class="row"><span class="sr-only">الوالدان:</span>${parentsRow}</div><div class="vline"></div>` : ""}
@@ -406,8 +423,58 @@ function drawRel(){
 
 function viewMissing(){
   app.innerHTML = `<h1>ما ينقصنا</h1>
-    <p class="lead">هذه المعلومات نبحث عنها للتحديث القادم. إن كنت تعرف شيئاً منها فأرسله إلى عبد الهادي بشير.</p>
+    <p class="lead">هذه المعلومات نبحث عنها للتحديث القادم. إن كنت تعرف شيئاً منها فأرسله من <a href="#fix">صفحة التصحيح</a>.</p>
     <div class="panel"><ol class="miss">${DATA.missing.map(m => `<li>${esc(m)}</li>`).join("")}</ol></div>`;
+}
+
+// ---------- أرسل تصحيحاً (يصل إلى الإيميل عبر FormSubmit)
+const FIX = {about: null};
+function viewFix(){
+  const about = FIX.about && P[FIX.about];
+  app.innerHTML = `<h1>أرسل تصحيحاً أو إضافة</h1>
+    <p class="lead">اكتب الخطأ الذي وجدته أو الأسماء الناقصة، وستصل رسالتك إلى عبد الهادي بشير ليضيفها في التحديث القادم.</p>
+    <form class="panel fixform" id="fixform" novalidate>
+      <div class="fld"><label for="f-name">اسمك الكامل <span aria-hidden="true">*</span></label>
+        <input id="f-name" name="الاسم" required autocomplete="name"></div>
+      <div class="fld"><label for="f-about">عن أي شخص أو فرع؟ (اختياري)</label>
+        <input id="f-about" name="عن" value="${about ? esc(shortName(about, 6)) : ""}"></div>
+      <div class="fld"><label for="f-type">نوع الرسالة</label>
+        <select id="f-type" name="النوع">
+          <option>تصحيح خطأ</option><option>إضافة اسم أو أبناء</option><option>بيانات فرع جديد</option><option>وفاة</option><option>زواج</option><option>اقتراح أو أمر آخر</option>
+        </select></div>
+      <div class="fld"><label for="f-msg">التصحيح أو الإضافة <span aria-hidden="true">*</span></label>
+        <textarea id="f-msg" name="الرسالة" rows="6" required></textarea></div>
+      <div class="fld"><label for="f-contact">رقمك أو إيميلك للتواصل إن احتجنا (اختياري)</label>
+        <input id="f-contact" name="للتواصل" autocomplete="email"></div>
+      <input type="text" name="_honey" class="sr-only" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="btn" type="submit" id="f-send">إرسال</button>
+      <p id="f-status" role="status" class="fstatus"></p>
+    </form>`;
+  FIX.about = null;
+  const form = document.getElementById("fixform"), st = document.getElementById("f-status"), send = document.getElementById("f-send");
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const name = form.querySelector("#f-name"), msg = form.querySelector("#f-msg");
+    if (!name.value.trim()) { st.textContent = "اكتب اسمك من فضلك."; name.focus(); return; }
+    if (!msg.value.trim()) { st.textContent = "اكتب التصحيح أو الإضافة من فضلك."; msg.focus(); return; }
+    const body = Object.fromEntries(new FormData(form));
+    if (body._honey) return;
+    body._subject = "شجرة البشيراب: " + body["النوع"] + " من " + body["الاسم"];
+    body._template = "table";
+    send.disabled = true; st.textContent = "جارٍ الإرسال…";
+    try {
+      const r = await fetch("https://formsubmit.co/ajax/" + DATA.formTo, {method: "POST",
+        headers: {"Content-Type": "application/json", "Accept": "application/json"}, body: JSON.stringify(body)});
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || String(j.success) === "false") throw new Error(j.message || r.status);
+      form.innerHTML = `<p class="fok" tabindex="-1" id="f-ok">شكراً لك، وصلت رسالتك. سنضيفها في التحديث القادم بإذن الله.</p>
+        <button class="btn ghost" type="button" onclick="viewFix()">إرسال رسالة أخرى</button>`;
+      document.getElementById("f-ok").focus();
+    } catch (err) {
+      send.disabled = false;
+      st.textContent = "لم تُرسل الرسالة. تأكد من الاتصال بالإنترنت وحاول مرة أخرى، أو أرسلها إلى عبد الهادي بشير مباشرة.";
+    }
+  };
 }
 
 function route(){
@@ -417,6 +484,7 @@ function route(){
   else if (h === "tree") { v = "tree"; viewTree(); }
   else if (h === "relation") { v = "relation"; viewRelation(); }
   else if (h === "missing") { v = "missing"; viewMissing(); }
+  else if (h === "fix") { v = "fix"; viewFix(); }
   else viewHome();
   document.querySelectorAll("#nav a").forEach(a => { a.classList.toggle("on", a.dataset.v === v); a.toggleAttribute("aria-current", a.dataset.v === v); });
   const h1 = app.querySelector("h1");
@@ -424,7 +492,7 @@ function route(){
   if (FIRST) FIRST = false; else if (h1) { h1.setAttribute("tabindex", "-1"); h1.focus(); }
 }
 let FIRST = true;
-document.getElementById("foot").innerHTML = `عائلة البشيراب · آخر تحديث: ${esc(DATA.updated)} · للتصحيح أو الإضافة: تواصل مع عبد الهادي بشير`;
+document.getElementById("foot").innerHTML = `عائلة البشيراب · آخر تحديث: ${esc(DATA.updated)} · <a href="#fix">أرسل تصحيحاً أو إضافة</a> · <a href="${DATA.pdf}" download="${esc(DATA.pdfName)}">تحميل الكتاب PDF</a>`;
 addEventListener("hashchange", route);
 route();
 </script>
