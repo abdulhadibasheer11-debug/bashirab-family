@@ -301,7 +301,7 @@ function viewHome(){
   const root = P[ROOT];
   const groups = {};
   kidsOf(root).forEach(k => (groups[k.group || ""] ||= []).push(k));
-  const documented = new Set(["1.10", "1.12", "1.11", "1.9"]);
+  const documented = new Set(["1.10", "1.12", "1.11", "1.9", "1.1", "1.5"]);
   const dead = DATA.people.filter(p=>p.dead).length;
   const gens = Math.max(...DATA.people.map(p => { let d=1,q=p; while((q.father&&P[q.father])||(q.mother&&P[q.mother])){ q=P[q.father]||P[q.mother]; d++; } return d; }));
   app.innerHTML = `
@@ -326,6 +326,8 @@ function viewHome(){
       <a class="btn" href="${hashOf("1.12")}">فرع محمد عثمان بن محمد بشير</a>
       <a class="btn" href="${hashOf("1.11")}">فرع فضل بن محمد بشير</a>
       <a class="btn" href="${hashOf("1.9")}">فرع شريف بن محمد بشير</a>
+      <a class="btn" href="${hashOf("1.1")}">فرع دياب بن محمد بشير</a>
+      <a class="btn" href="${hashOf("1.5")}">فرع خيري بن محمد بشير</a>
       <a class="btn ghost" href="#tree">تصفّح الشجرة كاملة</a>
       <a class="btn ghost" href="#relation">ما صلة القرابة بين شخصين؟</a>
     </div>
@@ -402,7 +404,7 @@ function viewPerson(id){
 }
 
 // ---------- الشجرة
-const OPEN = new Set(["1", "1.10", "1.10.1", "1.10.3", "1.10.4", "1.10.5", "1.10.6", "1.12", "1.12.2", "1.11", "1.9"]);
+const OPEN = new Set(["1", "1.10", "1.10.1", "1.10.3", "1.10.4", "1.10.5", "1.10.6", "1.12", "1.12.2", "1.11", "1.9", "1.1", "1.5"]);
 function viewTree(){
   const seen = new Set();
   function node(p, depth){
