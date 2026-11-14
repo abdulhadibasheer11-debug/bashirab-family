@@ -260,7 +260,7 @@ for c in children("1.12"):
 page("ch2", '<div class="chapter-head">الفصل الثاني</div>' +
      f'<div style="zoom:1.0"><div class="fam-top">{node(MO, ["ابن الجد محمد بشير"], "head")}</div>'
      f'<div class="fgrid" style="grid-template-columns:repeat(3,minmax(0,1fr))">{cards}</div></div>' +
-     note("زوجة محمد عثمان فاطمة حمد، أم أبنائه. توفي منهم: زينب وعبد المنعم وأم الملك ومملكة وحسن، رحمهم الله. "
+     note("زوجة محمد عثمان فاطمة حمد وديدي، أم أبنائه. توفي منهم: زينب وعبد المنعم وأم الملك ومملكة وحسن، رحمهم الله. "
           "زوج زينب الثاني علي خيري حفيد الجد من فرع خيري. أم الملك زوجة محمد بن بشير، جد عبد الهادي. "
           "سليم بن مملكة تزوج صفاء بنت نعمات."),
      title="فرع محمد عثمان بن محمد بشير")
@@ -334,6 +334,7 @@ def branch_page(key, head_id, head_sub, refs, cols, zoom, chap, notes_txt, title
     cards = ""
     for c in children(head_id):
         subs = [E(c["notes"]) if c["notes"] and "له زوجتان" not in c["notes"] else ""]
+        if "الثانية" in c["group"]: subs.append("من الزوجة الثانية")
         if c["id"] in refs:
             subs.append(refs[c["id"]](c)); inner = ""
             for x in children(c["id"]): mark(x)
@@ -345,14 +346,15 @@ def branch_page(key, head_id, head_sub, refs, cols, zoom, chap, notes_txt, title
          f'<div class="fgrid" style="grid-template-columns:repeat({cols},minmax(0,1fr))">{cards}</div></div>' +
          note(notes_txt), title=title)
 
-branch_page("dyab", "1.1", "ابن الجد محمد بشير، من زوجته الأولى كلتوم",
+branch_page("dyab", "1.1", "ابن الجد محمد بشير، من زوجته الأولى كلتوم · له زوجتان",
     {"1.1.1": lambda c: f"أبناؤه من جارة بنت بشير ← صفحة {pg('jara')}",
      "1.1.3": lambda c: f"له زوجتان · الأبناء: {ar(len(children(c['id'])))} ← صفحة {pg('husein')}"},
-    3, 1.08, "الفصل الخامس",
-    "أبناء دياب هؤلاء من إحدى زوجاته، وكلهم متوفون رحمهم الله. "
+    4, 1.0, "الفصل الخامس",
+    "لدياب زوجتان: من الأولى محمد وحسن وحسين وفاطمة وآمنة وشريفة، وكلهم متوفون رحمهم الله، "
+    "ومن الثانية محمد وفاطمة (وتكرار الأسماء بين أبناء الزوجتين كان مألوفاً). "
     "حسن تزوج قسيمة طمبل حسين طمبل بشير، حفيدة طمبل شقيق الجد. "
     "أبناء آمنة: عبد الله وحسن زوجا سامية بنت عبد المنعم، ووليد زوج ندى بنت عبد المنعم. "
-    "؟ عبد المنعم بن فاطمة «شهير بعبده ربه»: هل هو لقبه أم أخ له؟",
+    "عبد المنعم بن فاطمة لقبه «عبده ربه».",
     "فرع دياب بن محمد بشير")
 
 CUR[0] = "husein"
