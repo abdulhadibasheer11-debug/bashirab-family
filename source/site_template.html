@@ -119,6 +119,22 @@ footer{max-width:1000px;margin:auto;padding:0 16px 30px;color:var(--muted);font-
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 h1.pname{font-family:inherit;color:var(--ink)}
+#mebar .mewrap{max-width:1000px;margin:auto;padding:8px 16px;font-size:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#mebar .meline{background:var(--gold-bg);border-bottom:1px solid #ecdca6;color:var(--ink)}
+#mebar .meline a{color:var(--teal);font-weight:700;text-decoration:none}
+.linkbtn{background:none;border:0;padding:0;font:inherit;color:var(--teal2);text-decoration:underline;cursor:pointer}
+.mechoose{max-width:1000px;margin:16px auto 0;padding:0 16px}
+.mechoose .panel{border:1.5px solid var(--gold);background:var(--gold-bg);margin:0}
+.mechoose h2{margin:0 0 4px;font-size:19px;color:var(--teal)}
+.mechoose p{margin:0 0 10px;color:var(--muted);font-size:14.5px}
+.mechoose .row2{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.mechoose .searchbox{max-width:420px}
+.mechoose .searchbox input{width:100%;padding:9px 12px;border:1px solid #c9b77c;border-radius:10px;font:inherit;font-size:15px;background:#fff}
+.mebox{margin-top:12px;border:1.5px solid var(--gold);background:var(--gold-bg);border-radius:12px;padding:10px 14px}
+.mebox .melbl{font-size:13px;color:#8a6d12;font-weight:700;margin-bottom:2px}
+.mebox .mel{font-size:16.5px;font-weight:700;color:var(--teal)}
+.mebox .mside{display:block;font-size:12.5px;color:var(--muted);font-weight:400;margin:-2px 0 4px}
+.mebox a{font-size:13.5px;color:var(--teal2)}
 .fixform{display:flex;flex-direction:column;gap:14px;max-width:620px}
 .fld label{display:block;font-size:14.5px;margin-bottom:4px;font-weight:500}
 .fld input,.fld select,.fld textarea{width:100%;padding:9px 12px;border:1px solid #b9c6ca;border-radius:10px;font:inherit;font-size:15px;background:#fff;color:var(--ink)}
@@ -145,6 +161,7 @@ footer a{color:var(--teal2)}
   <div class="searchbox" id="topsearch"><input type="search" placeholder="ابحث عن اسم…" aria-label="ابحث عن اسم في العائلة" autocomplete="off"><div class="results"></div></div>
 </div></header>
 <div id="live" class="sr-only" aria-live="polite"></div>
+<div id="mebar"></div>
 <main id="app" tabindex="-1"></main>
 <footer id="foot"></footer>
 
@@ -357,6 +374,7 @@ function viewPerson(id){
         <h1 class="pname" tabindex="-1" id="ptitle">${esc(p.name)}${deadMark(p)}</h1>
         <div class="full">${esc(shortName(p, 8))}</div>
         <div class="facts">${facts.join("")}</div>
+        ${meBox(p)}
       </div>
       <div class="chips"><a class="btn ghost" href="#relation" onclick="REL.a='${p.id}'">صلة القرابة مع…</a>
       <a class="btn ghost" href="#fix" onclick="FIX.about='${p.id}'">أرسل تصحيحاً عن ${esc(p.name)}</a></div>
@@ -496,6 +514,8 @@ function relationLabel(a, b, ca, cb){ // ca وcb: من الجد المشترك �
   return `${old.name} و${anc.name} (${up(anc, dyng-dold)} ${yng.name}) أقارب من الدرجة ${ord}: ${meet}`;
 }
 function viewRelation(){
+  const me = ME.get();
+  if (me && !REL.a && !REL.b) REL.a = me;
   app.innerHTML = `<h1>صلة القرابة</h1>
     <p class="lead">اكتب اسم شخصين واختر كل واحد من القائمة، لترى كيف يرتبطان وما الجد المشترك بينهما.</p>
     <div class="panel"><div class="relform">
@@ -589,6 +609,86 @@ function viewFix(){
   };
 }
 
+// ---------- «من أنا؟»: يختار الزائر اسمه فيُحفظ في متصفحه فقط
+let ME_MEM = null, ME_LATER_MEM = false, CHOOSING = false;
+const ME = {
+  get(){ let v = ME_MEM; try { v = localStorage.getItem("bashirab_me") || v; } catch(e){} return v && P[v] ? v : null; },
+  set(id){ ME_MEM = id; try { id ? localStorage.setItem("bashirab_me", id) : localStorage.removeItem("bashirab_me"); } catch(e){} },
+  later(){ ME_LATER_MEM = true; try { localStorage.setItem("bashirab_me_later", "1"); } catch(e){} },
+  isLater(){ let v = ME_LATER_MEM; try { v = v || localStorage.getItem("bashirab_me_later") === "1"; } catch(e){} return v; }
+};
+// صلة X بك (بصيغة المخاطب). ca: من الجد المشترك إليك، cb: إلى X
+function youLabel(ca, cb){
+  const me = P[ca[ca.length-1]], X = P[cb[cb.length-1]];
+  const da = ca.length - 1, db = cb.length - 1;
+  const ab = (p, m, f) => isF(p) ? f : m;
+  const myPar = P[ca[ca.length-2]];
+  const myUp = (a, n) => a.id === ROOT && n > 2 ? "جدك الأكبر" : n === 1 ? ab(a,"والدك","والدتك") : n === 2 ? ab(a,"جدك","جدتك")
+    : n === 3 ? `${ab(a,"جد","جدة")} ${ab(myPar,"والدك","والدتك")}` : "من أجدادك";
+  const down = (x, n) => n === 1 ? ab(x,"ابن","بنت") : n === 2 ? ab(x,"حفيد","حفيدة") : "من ذرية";
+  const kinYou = (myPar, xPar) => isM(myPar) ? (isM(xPar) ? "عمك" : "عمتك") : (isM(xPar) ? "خالك" : "خالتك");
+  const kinW = (aPar, xPar) => isM(aPar) ? (isM(xPar) ? "عم" : "عمة") : (isM(xPar) ? "خال" : "خالة");
+  if (da === 0) return db === 1 ? ab(X,"ابنك","بنتك") : db === 2 ? ab(X,"حفيدك","حفيدتك") : "من ذريتك";
+  if (db === 0) return myUp(X, da);
+  if (da === 1 && db === 1) {
+    const sf = me.father && me.father === X.father, sm = me.mother && me.mother === X.mother;
+    return ab(X,"أخوك","أختك") + (sf && sm ? ab(X," الشقيق"," الشقيقة") : sf ? " من الأب" : " من الأم");
+  }
+  if (da === 1) { const S = P[cb[1]]; return `${down(X, db-1)} ${ab(S,"أخيك","أختك")} ${S.name}`; }
+  if (db === 1) { const A = P[ca[1]]; return da === 2 ? kinYou(A, X) : da === 3 ? `${ab(X,"أخو","أخت")} ${myUp(A, 2)} ${A.name}` : `${ab(X,"أخو","أخت")} ${A.name}، ${myUp(A, da-1)}`; }
+  if (da === 2 && db === 2) return `${ab(X,"ابن","بنت")} ${kinYou(P[ca[1]], P[cb[1]])} ${P[cb[1]].name}`;
+  if (da === 2) { const C = P[cb[2]]; return `${down(X, db-2)} ${C.name}، ${ab(C,"ابن","بنت")} ${kinYou(P[ca[1]], P[cb[1]])}`; }
+  if (db === 2) { const A = P[ca[2]]; return `${ab(X,"ابن","بنت")} ${kinW(P[ca[1]], P[cb[1]])} ${myUp(A, da-2)} ${A.name}`; }
+  if (da === 3 && db === 3) { const Y = P[cb[2]]; return `${ab(X,"ابن","بنت")} ${Y.name}، ${ab(Y,"ابن","بنت")} ${kinW(P[ca[1]], P[cb[1]])} ${ab(myPar,"والدك","والدتك")}`; }
+  const n = Math.min(da, db) - 1, ord = ["","الأولى","الثانية","الثالثة","الرابعة","الخامسة"][n] || AR(n);
+  return `${ab(X,"قريبك","قريبتك")} من الدرجة ${ord}، تلتقيان في ${P[cb[0]].name}`;
+}
+function meBox(p){
+  const me = ME.get();
+  if (!me) return "";
+  if (me === p.id) return `<div class="mebox"><div class="mel">هذه صفحتك</div></div>`;
+  const lines = [];
+  if (spouseOf(P[me]).some(x => x.id === p.id)) lines.push(ab2(p, "زوجك", "زوجتك"));
+  const conns = relConnections(me, p.id), seen = new Set(lines);
+  const rel = [];
+  for (const c of conns) {
+    const l = youLabel(c.ca, c.cb);
+    const sd = c.ca.length > 1 ? (isM(P[c.ca[c.ca.length-2]]) ? "من جهة أبيك" : "من جهة أمك") : "";
+    if (seen.has(l) || rel.some(r => r.side === sd)) continue;   // الأقرب من كل جهة فقط
+    seen.add(l);
+    rel.push({l, side: c.ca.length > 1 ? (isM(P[c.ca[c.ca.length-2]]) ? "من جهة أبيك" : "من جهة أمك") : ""});
+  }
+  const multi = new Set(rel.map(r => r.side)).size > 1;
+  rel.forEach(r => lines.push((multi && r.side ? `<span class="mside">${r.side}:</span>` : "") + r.l));
+  const body = lines.length ? lines.map(l => `<div class="mel">${l.replace(/^(<span class="mside">[^<]*<\/span>)?/, m => m + esc(p.name) + " ")}</div>`).join("")
+    : `<div class="mel" style="font-weight:400;font-size:14.5px">لا توجد صلة مسجلة بينك وبين ${isF(p)?"ها":"ه"} بعد</div>`;
+  return `<div class="mebox"><div class="melbl">${isF(p)?"صلتها":"صلته"} بك</div>${body}
+    ${lines.length ? `<a href="#relation" onclick="REL.a='${me}';REL.b='${p.id}'">التفاصيل والرسم</a>` : ""}</div>`;
+}
+const ab2 = (p, m, f) => isF(p) ? f : m;
+function renderMeBar(view){
+  const bar = document.getElementById("mebar"), me = ME.get();
+  if (me && !CHOOSING) {
+    bar.innerHTML = `<div class="meline"><div class="mewrap">أنت: <a href="${hashOf(me)}">${esc(shortName(P[me], 4))}</a> ·
+      <button class="linkbtn" type="button" id="mechange">تغيير</button></div></div>`;
+    document.getElementById("mechange").onclick = () => { CHOOSING = true; renderMeBar(view); document.getElementById("mein").focus(); };
+    return;
+  }
+  if (!CHOOSING && (view !== "home" || ME.isLater())) { bar.innerHTML = ""; return; }
+  bar.innerHTML = `<div class="mechoose"><div class="panel">
+      <h2>${me ? "غيّر اسمك" : "هل أنت من العائلة؟"}</h2>
+      <p>اكتب اسمك واختره من القائمة، لترى صلتك بكل شخص في الشجرة. يُحفظ اختيارك في جهازك فقط.</p>
+      <div class="row2"><div class="searchbox" id="mesearch"><input id="mein" type="search" placeholder="اكتب اسمك…" autocomplete="off"><div class="results"></div></div>
+      <button class="btn ghost" type="button" id="melater">${me ? "إلغاء" : "لاحقاً"}</button>
+      ${me ? `<button class="btn ghost" type="button" id="meclear">إزالة اسمي</button>` : ""}</div>
+    </div></div>`;
+  wireSearch(document.getElementById("mesearch"), pp => { ME.set(pp.id); CHOOSING = false;
+    document.getElementById("live").textContent = `أهلاً ${pp.name}. تظهر الآن صلتك في صفحة كل شخص.`; route(); });
+  document.getElementById("melater").onclick = () => { if (!me) ME.later(); CHOOSING = false; renderMeBar(view); };
+  const cl = document.getElementById("meclear");
+  if (cl) cl.onclick = () => { ME.set(null); CHOOSING = false; route(); };
+}
+
 function route(){
   const h = location.hash.slice(1);
   let v = "home";
@@ -597,13 +697,14 @@ function route(){
   else if (h === "relation") { v = "relation"; viewRelation(); }
   else if (h === "fix") { v = "fix"; viewFix(); }
   else viewHome();
+  renderMeBar(v);
   document.querySelectorAll("#nav a").forEach(a => { a.classList.toggle("on", a.dataset.v === v); a.toggleAttribute("aria-current", a.dataset.v === v); });
   const h1 = app.querySelector("h1");
   document.title = (h1 && v !== "home" ? h1.textContent.replace("†","").trim() + " · " : "") + "عائلة البشيراب";
   if (FIRST) FIRST = false; else if (h1) { h1.setAttribute("tabindex", "-1"); h1.focus(); }
 }
 let FIRST = true;
-document.getElementById("foot").innerHTML = `عائلة البشيراب · آخر تحديث: ${esc(DATA.updated)} · <a href="#fix">أرسل تصحيحاً أو إضافة</a> · <a href="${DATA.pdf}" download="${esc(DATA.pdfName)}">تحميل الكتاب PDF</a>`;
+document.getElementById("foot").innerHTML = `عائلة البشيراب · آخر تحديث: ${esc(DATA.updated)} · <a href="#" onclick="CHOOSING=true;setTimeout(()=>{renderMeBar('home');document.getElementById('mein').focus()},30)">اعرف صلتك بالعائلة</a> · <a href="#fix">أرسل تصحيحاً أو إضافة</a> · <a href="${DATA.pdf}" download="${esc(DATA.pdfName)}">تحميل الكتاب PDF</a>`;
 addEventListener("hashchange", route);
 route();
 </script>
