@@ -365,7 +365,6 @@ function viewHome(){
       <div class="bkids">${kidsOf(b).slice(0, 6).map(k => esc(k.name)).join("، ")}${b.kids.length > 6 ? "…" : ""}</div></a>`;
   }).join("");
   const others = kidsOf(root).filter(k => !documented.has(k.id));
-  const [d0, items0] = DATA.changes[0];
   app.innerHTML = `
     <h1>عائلة البشيراب</h1>
     <p class="lead">ذرية الجد <b>محمد بشير</b>. ابحث عن أي اسم في الأعلى، أو تصفّح فروع العائلة، أو اعرف صلة القرابة بين شخصين.</p>
@@ -379,11 +378,6 @@ function viewHome(){
       <div class="stat"><b>${AR(gens)}</b><span>أجيال</span></div>
       <div class="stat"><b>${AR(documented.size)} من ${AR(kidsOf(root).length)}</b><span>فروع موثّقة من أبناء الجد</span></div>
       <div class="stat"><b>${AR(dead)}</b><span>من المتوفين رحمهم الله</span></div>
-    </div>
-    <div class="panel news" style="margin-top:14px">
-      <b>آخر الإضافات</b>
-      <ul>${items0.map(t => `<li>${esc(t)}</li>`).join("")}</ul>
-      <div class="nd">آخر تحديث: ${esc(d0)} · <a href="#stats">أرقام العائلة</a></div>
     </div>
     <h2>فروع العائلة</h2>
     <div class="bgrid">${cards}</div>
@@ -526,7 +520,7 @@ function viewStats(){
   const genName = d => ["", "الجد", "الأبناء", "الأحفاد", "أبناء الأحفاد"][d] || `الجيل ${AR(d)}`;
   const males = DATA.people.filter(isM).length, females = DATA.people.filter(isF).length;
   app.innerHTML = `<h1>أرقام العائلة</h1>
-    <p class="lead">أرقام من البيانات المسجلة حتى الآن (${esc(DATA.updated)}). تكبر كلما أُضيفت فروع وأسماء جديدة.</p>
+    <p class="lead">أرقام من البيانات المسجلة حتى الآن، وتكبر كلما أُضيفت فروع وأسماء جديدة.</p>
     <div class="stats">
       <div class="stat"><b>${AR(DATA.people.length)}</b><span>شخصاً مسجلاً</span></div>
       <div class="stat"><b>${AR(males)}</b><span>ذكور</span></div>
@@ -826,7 +820,7 @@ function route(){
   if (FIRST) FIRST = false; else if (h1) { h1.setAttribute("tabindex", "-1"); h1.focus(); }
 }
 let FIRST = true;
-document.getElementById("foot").innerHTML = `عائلة البشيراب · آخر تحديث: ${esc(DATA.updated)} · <a href="#" onclick="CHOOSING=true;setTimeout(()=>{renderMeBar('home');document.getElementById('mein').focus()},30)">اعرف صلتك بالعائلة</a> · <a href="#fix">أرسل تصحيحاً أو إضافة</a> · <a href="${DATA.pdf}" download="${esc(DATA.pdfName)}">تحميل الكتاب PDF</a>`;
+document.getElementById("foot").innerHTML = `عائلة البشيراب · <a href="#" onclick="CHOOSING=true;setTimeout(()=>{renderMeBar('home');document.getElementById('mein').focus()},30)">اعرف صلتك بالعائلة</a> · <a href="#fix">أرسل تصحيحاً أو إضافة</a> · <a href="${DATA.pdf}" download="${esc(DATA.pdfName)}">تحميل الكتاب PDF</a>`;
 addEventListener("hashchange", route);
 route();
 </script>
