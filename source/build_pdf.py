@@ -10,7 +10,7 @@ CLS = {"ذكر": "m", "أنثى": "f", "غير معروف": "u"}
 MAR = '<span class="mar">⚭</span>'
 
 # ---------- أرقام الصفحات
-ORDER = ["cover", "intro", "root", "ch1", "amna", "mhd", "bashir", "khidr", "others",
+ORDER = ["cover", "intro", "root", "ch1", "jara", "amna", "mhd", "bashir", "khidr", "others",
          "liba", "dahaba", "ali", "ch2", "nemat", "monem1", "monem2", "ch3", "sharif", "ch4", "index"]
 PG = {k: i + 1 for i, k in enumerate(ORDER)}
 def pg(k): return ar(PG[k])
@@ -131,7 +131,7 @@ page("root", tree(li(node(root, ["الجد الأكبر"], "rootnode"), glis), 1
 
 # ================= ٤ الفصل الأول: أبناء بشير
 CUR[0] = "ch1"
-famkey = {"1.10.1": "mhd", "1.10.3": "amna", "1.10.4": "liba", "1.10.5": "dahaba", "1.10.6": "ali"}
+famkey = {"1.10.2": "jara", "1.10.1": "mhd", "1.10.3": "amna", "1.10.4": "liba", "1.10.5": "dahaba", "1.10.6": "ali"}
 B0 = by_id["1.10"]
 bg = {}
 for c in children("1.10"):
@@ -153,6 +153,12 @@ page("ch1", '<div class="chapter-head">الفصل الأول</div>' +
      title="فرع بشير بن محمد بشير")
 
 # ================= ٥ أسرة آمنة
+CUR[0] = "jara"
+page("jara", family_grid(by_id["1.10.2"], ["بنت بشير"], cols=3, zoom=1.4) +
+     note("فاطمة بنت جارة زوجة سيد أحمد بن فضل بن محمد بشير رحمه الله، فأبناؤها من فرع فضل أيضاً. "
+          "؟ زوج جارة، وأبناء السر (٥ تقريباً) وخدم الله، واسم بنت جارة ابنة بشير."),
+     title="أسرة جارة بنت بشير")
+
 CUR[0] = "amna"
 page("amna", family_grid(by_id["1.10.3"], ["بنت بشير"], cols=4, zoom=1.32) +
      note("زوجها محمد فضل هو ابن فضل بن محمد بشير، فأبناؤها ينتسبون إلى فرع فضل."),
@@ -304,6 +310,7 @@ page("ch3", '<div class="chapter-head">الفصل الثالث</div>' +
      f'<div style="zoom:1.15"><div class="fam-top">{node(by_id["1.11"], ["ابن الجد محمد بشير"], "head")}</div>'
      f'<div class="fgrid" style="grid-template-columns:repeat(4,minmax(0,1fr))">{cards}</div></div>' +
      note("أبناء فضل كلهم متوفون إلا مهدي ونصرة، رحمهم الله. "
+          f"سيد أحمد تزوج فاطمة بنت جارة بنت بشير ← صفحة {pg('jara')}. "
           f"محمد صلاح تزوج شيماء بنت الطيب ← صفحة {pg('liba')}. "
           "؟ أبناء صلاح من الزوجة الثانية (٣ بنات وولدان)، وأبناء عبد الدائم وبشير ونصرة."),
      title="فرع فضل بن محمد بشير")
@@ -378,6 +385,7 @@ legend = """
 </table>"""
 toc = [("الشجرة الكبرى: الجد محمد بشير وأبناؤه", "root", False),
        ("الفصل الأول: فرع بشير بن محمد بشير", "ch1", False),
+       ("أسرة جارة بنت بشير", "jara", True),
        ("أسرة آمنة بنت بشير", "amna", True), ("أسرة محمد بن بشير", "mhd", True),
        ("أسرة بشير بن محمد", "bashir", True), ("أسرة خضر بن محمد", "khidr", True),
        ("أسر الفاضل وعواطف وأحلام وعبد القادر", "others", True),
