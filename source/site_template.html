@@ -434,12 +434,9 @@ function relationLabel(a, b, A, B, top){
     const par = P[ca[1]];
     return `${pb.name} ${isM(par) ? ab(pb,"عم","عمة") : ab(pb,"خال","خالة")} ${pa.name}`;
   }
-  if (da === 2 && db === 2) {
-    const xa = P[ca[1]], xb = P[cb[1]]; // والد a ووالد b (إخوة)
-    const kin = isM(xb) ? (isM(xa) ? "عمه" : "خاله") : (isM(xa) ? "عمته" : "خالته");
-    const kinF = isM(xb) ? (isM(xa) ? "عمها" : "خالها") : (isM(xa) ? "عمتها" : "خالتها");
-    return `${pb.name} ${ab(pb,"ابن","بنت")} ${isF(pa) ? kinF : kin} — أبناء عمومة من الدرجة الأولى`;
-  }
+  // y ابن/بنت (عم/عمة/خال/خالة) x — حيث px والد x وpy والد y وهما إخوة
+  const kinOf = (x, px, y, py) => `${ab(y,"ابن","بنت")} ${isM(px) ? (isM(py) ? "عم" : "عمة") : (isM(py) ? "خال" : "خالة")} ${x.name}`;
+  if (da === 2 && db === 2) return `${pb.name} ${kinOf(pa, P[ca[1]], pb, P[cb[1]])}`;
   const up = (p, n) => n === 1 ? ab(p,"والد","والدة") : n === 2 ? ab(p,"جد","جدة") : ab(p,"جد","جدة") + ` من الدرجة ${AR(n-1)}`;
   if (da === 1 || db === 1) { // أحدهما أخو جدّ الآخر
     const [x, cy, dy] = da === 1 ? [pa, cb, db] : [pb, ca, da];
@@ -447,10 +444,13 @@ function relationLabel(a, b, A, B, top){
     return `${x.name} ${ab(x,"أخو","أخت")} ${sib.name}، ${up(sib, dy-1)} ${y.name}`;
   }
   const n = Math.min(da, db) - 1, ord = ["","الأولى","الثانية","الثالثة","الرابعة","الخامسة"][n] || AR(n);
-  if (da === db) return `${pa.name} و${pb.name} أبناء عمومة من الدرجة ${ord}`;
-  const [old, yng, cyng, dold, dyng] = da < db ? [pa, pb, cb, da, db] : [pb, pa, ca, db, da];
+  const meet = `يلتقيان في ${P[top].name}`;
+  if (da === db) return `${pa.name} و${pb.name} أقارب من الدرجة ${ord}: ${meet}`;
+  const [old, yng, cold, cyng, dold, dyng] = da < db ? [pa, pb, ca, cb, da, db] : [pb, pa, cb, ca, db, da];
   const anc = P[cyng[dold]];
-  return `${old.name} و${anc.name} (${up(anc, dyng-dold)} ${yng.name}) أبناء عمومة من الدرجة ${ord}`;
+  if (n === 1) // old وanc أبناء عم/خال مباشرون
+    return `${anc.name} (${up(anc, dyng-dold)} ${yng.name}) ${kinOf(old, P[cold[1]], anc, P[cyng[1]])}`;
+  return `${old.name} و${anc.name} (${up(anc, dyng-dold)} ${yng.name}) أقارب من الدرجة ${ord}: ${meet}`;
 }
 function viewRelation(){
   app.innerHTML = `<h1>صلة القرابة</h1>
