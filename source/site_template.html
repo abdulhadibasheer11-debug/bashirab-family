@@ -17,6 +17,11 @@
 <meta property="og:image:alt" content="شجرة عائلة البشيراب">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#1f4e5f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="البشيراب">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Amiri:wght@700&display=swap" rel="stylesheet">
 <style>
@@ -120,6 +125,39 @@ footer{max-width:1000px;margin:auto;padding:0 16px 30px;color:var(--muted);font-
 .empty{color:var(--muted);font-size:14px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+[tabindex="-1"]:focus,[tabindex="-1"]:focus-visible{outline:none}
+.hero-actions{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 18px}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.bcard{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;position:relative;overflow:hidden;transition:box-shadow .15s,transform .15s}
+.bcard:hover{box-shadow:0 6px 18px rgba(31,78,95,.12);transform:translateY(-1px)}
+.bcard:before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:var(--gold)}
+.bcard .bn{font-size:19px;font-weight:700;color:var(--teal)}
+.bcard .bs{font-size:13px;color:var(--muted);margin-top:2px}
+.bcard .bnum{display:flex;gap:14px;margin-top:10px;font-size:13px;color:var(--muted)}
+.bcard .bnum b{display:block;font-size:20px;color:var(--ink)}
+.bcard .bkids{margin-top:8px;font-size:12.5px;color:var(--muted);line-height:1.6}
+.news{border-right:4px solid var(--gold)}
+.news ul{margin:4px 0 0;padding-right:18px}
+.news li{margin:3px 0}
+.news .nd{font-size:12.5px;color:var(--muted);margin-top:8px}
+.bpick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.bpick a{text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-size:14px;color:var(--teal)}
+.bpick a.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.bpick a small{color:inherit;opacity:.7;margin-right:4px}
+.askbox{margin-top:10px;background:#fff8e6;border:1px dashed #d8b85a;border-radius:10px;padding:8px 12px;font-size:14px}
+.askbox a{color:var(--teal);font-weight:700}
+.bars{display:flex;flex-direction:column;gap:7px}
+.bar{display:grid;grid-template-columns:110px 1fr 44px;align-items:center;gap:8px;font-size:14px}
+.bar a{color:var(--teal);text-decoration:none}
+.bar .tr{background:#eef2f3;border-radius:6px;height:14px;overflow:hidden}
+.bar .fl{background:var(--teal2);height:100%;border-radius:6px}
+.bar .v{text-align:left;color:var(--muted);font-size:13px}
+.rank{counter-reset:r;list-style:none;padding:0;margin:0}
+.rank li{counter-increment:r;display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.rank li:last-child{border:0}
+.rank li:before{content:counter(r, arabic-indic);color:var(--gold);font-weight:700;width:22px}
+.rank li span:first-of-type{flex:1}
+.rank .v{color:var(--muted);font-size:13px}
 h1.pname{font-family:inherit;color:var(--ink)}
 #mebar .mewrap{max-width:1000px;margin:auto;padding:8px 16px;font-size:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 #mebar .meline{background:var(--gold-bg);border-bottom:1px solid #ecdca6;color:var(--ink)}
@@ -157,6 +195,7 @@ footer a{color:var(--teal2)}
     <a href="#" data-v="home">الرئيسية</a>
     <a href="#tree" data-v="tree">الشجرة</a>
     <a href="#relation" data-v="relation">صلة القرابة</a>
+    <a href="#stats" data-v="stats">أرقام العائلة</a>
     <a href="#fix" data-v="fix">أرسل تصحيحاً</a>
     <a href="__PDF__" download="__PDFNAME__">تحميل الكتاب PDF</a>
   </nav>
@@ -296,47 +335,72 @@ function wireSearch(box, onPick){
 wireSearch(document.getElementById("topsearch"), (p, inp) => { inp.value = ""; location.hash = hashOf(p.id); });
 
 // ---------- الصفحات
+
+// ---------- إحصاءات
+const DESC = {};
+function descendants(id){ // كل الذرية المسجلة (بلا تكرار)
+  if (DESC[id]) return DESC[id];
+  const out = new Set(), st = [...P[id].kids];
+  while (st.length) { const k = st.pop(); if (out.has(k)) continue; out.add(k); st.push(...P[k].kids); }
+  return DESC[id] = out;
+}
+function depthOf(p){ let d = 1, q = p; while ((q.father && P[q.father]) || (q.mother && P[q.mother])) { q = P[q.father] || P[q.mother]; d++; } return d; }
+function branchGens(id){ const base = depthOf(P[id]); let m = base; descendants(id).forEach(k => m = Math.max(m, depthOf(P[k]))); return m - base + 1; }
+const DOCUMENTED = ["1.10", "1.12", "1.11", "1.9", "1.1", "1.5"];
+const plural = (n, one, two, few, many) => n === 1 ? one : n === 2 ? two : n <= 10 ? `${AR(n)} ${few}` : `${AR(n)} ${many}`;
 const app = document.getElementById("app");
 function viewHome(){
   const root = P[ROOT];
   const groups = {};
   kidsOf(root).forEach(k => (groups[k.group || ""] ||= []).push(k));
-  const documented = new Set(["1.10", "1.12", "1.11", "1.9", "1.1", "1.5"]);
+  const documented = new Set(DOCUMENTED);
   const dead = DATA.people.filter(p=>p.dead).length;
-  const gens = Math.max(...DATA.people.map(p => { let d=1,q=p; while((q.father&&P[q.father])||(q.mother&&P[q.mother])){ q=P[q.father]||P[q.mother]; d++; } return d; }));
+  const gens = Math.max(...DATA.people.map(depthOf));
+  const cards = DOCUMENTED.map(id => {
+    const b = P[id], n = descendants(id).size, g = branchGens(id);
+    return `<a class="bcard" href="#tree-${id.replace(/\./g, "-")}">
+      <div class="bn">فرع ${esc(b.name)}</div><div class="bs">${isF(b) ? "بنت" : "ابن"} الجد محمد بشير${b.dead ? (isF(b) ? "، رحمها الله" : "، رحمه الله") : ""}</div>
+      <div class="bnum"><span><b>${AR(n)}</b>من الذرية</span><span><b>${AR(g)}</b>أجيال</span><span><b>${AR(b.kids.length)}</b>أبناء</span></div>
+      <div class="bkids">${kidsOf(b).slice(0, 6).map(k => esc(k.name)).join("، ")}${b.kids.length > 6 ? "…" : ""}</div></a>`;
+  }).join("");
+  const others = kidsOf(root).filter(k => !documented.has(k.id));
+  const [d0, items0] = DATA.changes[0];
   app.innerHTML = `
     <h1>عائلة البشيراب</h1>
-    <p class="lead">ذرية الجد <b>محمد بشير</b>. ابحث عن أي اسم في الأعلى، أو اضغط على أي شخص لترى أهله وأبناءه، أو اعرف صلة القرابة بين شخصين.</p>
+    <p class="lead">ذرية الجد <b>محمد بشير</b>. ابحث عن أي اسم في الأعلى، أو تصفّح فروع العائلة، أو اعرف صلة القرابة بين شخصين.</p>
+    <div class="hero-actions">
+      <a class="btn" href="#tree">تصفّح الشجرة</a>
+      <a class="btn ghost" href="#relation">ما صلة القرابة بين شخصين؟</a>
+      ${ME.get() ? "" : `<a class="btn ghost" href="#" id="meopen">اعرف صلتك بالعائلة</a>`}
+    </div>
     <div class="stats">
       <div class="stat"><b>${AR(DATA.people.length)}</b><span>شخصاً مسجلاً حتى الآن</span></div>
       <div class="stat"><b>${AR(gens)}</b><span>أجيال</span></div>
       <div class="stat"><b>${AR(documented.size)} من ${AR(kidsOf(root).length)}</b><span>فروع موثّقة من أبناء الجد</span></div>
       <div class="stat"><b>${AR(dead)}</b><span>من المتوفين رحمهم الله</span></div>
     </div>
+    <div class="panel news" style="margin-top:14px">
+      <b>آخر الإضافات</b>
+      <ul>${items0.map(t => `<li>${esc(t)}</li>`).join("")}</ul>
+      <div class="nd">آخر تحديث: ${esc(d0)} · <a href="#stats">أرقام العائلة</a></div>
+    </div>
+    <h2>فروع العائلة</h2>
+    <div class="bgrid">${cards}</div>
+    ${others.length ? `<p class="empty" style="margin:12px 0 4px">فروع تُجمع بياناتها:</p>
+      <div class="chips">${others.map(k => chip(k)).join("")}</div>` : ""}
     <h2>الجد محمد بشير وأبناؤه</h2>
     <div class="panel">
       <div style="margin-bottom:8px">${chip(root, "hl")} <span class="cnt">الجد الأكبر</span></div>
       ${Object.entries(groups).map(([g, ks]) => `<div class="grouplbl">${esc(g)}${g.startsWith("الزوجة") && !g.includes("(") ? " (الاسم غير معروف)" : ""}</div>
         <div class="chips">${ks.map(k => chip(k, documented.has(k.id) ? "hl" : "")).join("")}</div>`).join("")}
-      <p class="empty" style="margin:12px 0 0">المحدد بإطار ذهبي فرعه موثّق في هذا الإصدار. تقسيم الأبناء حسب الزوجات مبدئي، والمؤكد أن كلتوم أم دياب وعثمان وعجائب.</p>
-    </div>
-    <h2>ابدأ من هنا</h2>
-    <div class="chips">
-      <a class="btn" href="${hashOf("1.10")}">فرع بشير بن محمد بشير</a>
-      <a class="btn" href="${hashOf("1.12")}">فرع محمد عثمان بن محمد بشير</a>
-      <a class="btn" href="${hashOf("1.11")}">فرع فضل بن محمد بشير</a>
-      <a class="btn" href="${hashOf("1.9")}">فرع شريف بن محمد بشير</a>
-      <a class="btn" href="${hashOf("1.1")}">فرع دياب بن محمد بشير</a>
-      <a class="btn" href="${hashOf("1.5")}">فرع خيري بن محمد بشير</a>
-      <a class="btn ghost" href="#tree">تصفّح الشجرة كاملة</a>
-      <a class="btn ghost" href="#relation">ما صلة القرابة بين شخصين؟</a>
+      <p class="empty" style="margin:12px 0 0">المحدد بإطار ذهبي فرعه موثّق. تقسيم الأبناء حسب الزوجات مبدئي، والمؤكد أن كلتوم أم دياب وعثمان وعجائب.</p>
     </div>
     <h2>الكتاب والتصحيحات</h2>
     <div class="chips">
       <a class="btn" href="${DATA.pdf}" download="${esc(DATA.pdfName)}">تحميل كتاب العائلة PDF</a>
       <a class="btn ghost" href="#fix">أرسل تصحيحاً أو إضافة</a>
     </div>
-    <p class="empty" style="margin:8px 0 0">الكتاب يُحدَّث مرة في السنة. إن وجدت خطأً أو اسماً ناقصاً فأرسله من صفحة التصحيح.</p>
+    <p class="empty" style="margin:8px 0 0">إن وجدت خطأً أو اسماً ناقصاً فأرسله من صفحة التصحيح، وسنضيفه في التحديث القادم.</p>
     <h2>دليل الرموز</h2>
     <div class="legend">
       <span class="chip m">اسم <span class="sym">♂</span></span> ذكر
@@ -345,6 +409,8 @@ function viewHome(){
       <span>⚭ متزوج من</span>
       ${unk("معلومة ناقصة")}
     </div>`;
+  const mo = document.getElementById("meopen");
+  if (mo) mo.onclick = e => { e.preventDefault(); CHOOSING = true; renderMeBar("home"); window.scrollTo(0, 0); document.getElementById("mein").focus(); };
 }
 
 function viewPerson(id){
@@ -366,6 +432,8 @@ function viewPerson(id){
   if (p.spouse) facts.push(`<span class="fact">⚭ ${esc(p.spouse)}</span>`);
   if (p.notes) facts.push(`<span class="fact">${esc(p.notes)}</span>`);
   if (p.unknown) facts.push(`<span class="fact warn">؟ أبناء لم تُسجَّل أسماؤهم: ${esc(p.unknown)}</span>`);
+  const nd = descendants(p.id).size;
+  if (nd > p.kids.length) facts.push(`<span class="fact">${isF(p) ? "ذريتها" : "ذريته"} المسجلة: ${AR(nd)}</span>`);
   if (p.group && father) facts.push(`<span class="fact">${isF(p)?"أمها":"أمه"}: ${esc(p.group)} ${isF(p)?"لأبيها":"لأبيه"}</span>`);
   const parentsRow = [father ? chip(father) : (p.father_txt ? `<span class="chip m">${esc(p.father_txt)} <span class="sym">♂</span></span>` : ""),
                       mother ? chip(mother) : ""].filter(Boolean).join("");
@@ -393,7 +461,8 @@ function viewPerson(id){
       <section class="panel"><h2 style="margin-top:0">الأبناء ${kids.length ? `<span class="cnt">(${AR(kids.length)})</span>` : ""}</h2>
         ${kids.length ? Object.entries(kg).map(([g, ks]) => (g ? `<div class="grouplbl">${esc(g)}</div>` : "") +
           `<div class="chips">${ks.map(k => chip(k)).join("")}</div>`).join("") : ""}
-        ${p.unknown ? `<div class="chips" style="margin-top:6px">${unk(p.unknown)}</div>` : ""}
+        ${p.unknown ? `<div class="chips" style="margin-top:6px">${unk(p.unknown)}</div>
+          <div class="askbox">هل تعرف أسماءهم؟ <a href="#fix" onclick="FIX.about='${p.id}'">أرسلها لنا</a> لنضيفها في التحديث القادم.</div>` : ""}
         ${!kids.length && !p.unknown ? `<p class="empty">لا يوجد أبناء مسجلون.</p>` : ""}
       </section>
       <section class="panel"><h2 style="margin-top:0">الإخوة ${sibs.length ? `<span class="cnt">(${AR(sibs.length)})</span>` : ""}</h2>
@@ -403,33 +472,80 @@ function viewPerson(id){
   window.scrollTo(0, 0);
 }
 
-// ---------- الشجرة
-const OPEN = new Set(["1", "1.10", "1.10.1", "1.10.3", "1.10.4", "1.10.5", "1.10.6", "1.12", "1.12.2", "1.11", "1.9", "1.1", "1.5"]);
-function viewTree(){
+// ---------- الشجرة (فرع واحد في كل مرة)
+const OPEN = new Set();
+let TREE_AT = null;
+function viewTree(at){
+  at = at && P[at] ? at : ROOT;
+  if (TREE_AT !== at) { // افتح جيلين من الفرع المختار
+    OPEN.clear(); OPEN.add(at); if (at !== ROOT) P[at].kids.forEach(k => OPEN.add(k));
+    TREE_AT = at;
+  }
   const seen = new Set();
-  function node(p, depth){
-    const kids = kidsOf(p);
-    const open = OPEN.has(p.id);
-    const both = p.father && p.mother && P[p.father] && P[p.mother];
+  function node(p){
+    const kids = kidsOf(p), open = OPEN.has(p.id);
     let also = "";
-    if (both) {
+    if (p.father && p.mother && P[p.father] && P[p.mother]) {
       if (seen.has(p.id)) also = `<span class="alsonote">مذكور أيضاً في فرع الطرف الآخر</span>`;
       seen.add(p.id);
     }
     const sp = p.spouse ? `<span class="cnt">⚭ ${esc(p.spouse)}</span>` : "";
     return `<li><div class="ln">
       ${kids.length ? `<button class="tog" data-id="${p.id}" aria-expanded="${open}" aria-label="${open ? "إغلاق" : "فتح"} فرع ${esc(p.name)}">${open ? "−" : "+"}</button>` : `<span class="tog ph" aria-hidden="true"></span>`}
-      ${chip(p)} ${kids.length ? `<span class="cnt">${AR(kids.length)} أبناء</span>` : ""} ${sp} ${p.unknown ? `<span class="cnt">· ؟ ${esc(p.unknown)}</span>` : ""} ${also}
-    </div>${kids.length && open ? `<ul>${kids.map(k => node(k, depth+1)).join("")}</ul>` : ""}</li>`;
+      ${chip(p)} ${kids.length ? `<span class="cnt">${plural(kids.length, "ابن واحد", "ابنان", "أبناء", "ابناً")}</span>` : ""} ${sp} ${p.unknown ? `<span class="cnt">· ؟ ${esc(p.unknown)}</span>` : ""} ${also}
+    </div>${kids.length && open ? `<ul>${kids.map(k => node(k)).join("")}</ul>` : ""}</li>`;
   }
-  app.innerHTML = `<h1>الشجرة</h1>
-    <p class="lead">اضغط + لفتح فرع، واضغط الاسم لفتح صفحة الشخص.</p>
+  const rk = kidsOf(P[ROOT]);
+  const pick = [`<a href="#tree" class="${at === ROOT ? "on" : ""}">الجد وأبناؤه</a>`]
+    .concat(rk.filter(k => k.kids.length).map(k => `<a href="#tree-${k.id.replace(/\./g, "-")}" class="${at === k.id ? "on" : ""}">${esc(k.name)}<small>${AR(descendants(k.id).size)}</small></a>`)).join("");
+  const crumbs = at === ROOT ? "" : `<nav class="crumbs" style="margin:0 0 10px">${ancestorsLine(P[at]).map(a => `<a href="#tree-${a.id.replace(/\./g, "-")}">${esc(a.name)}</a> ‹`).join(" ")} <b>${esc(P[at].name)}</b></nav>`;
+  app.innerHTML = `<h1>${at === ROOT ? "الشجرة" : "فرع " + esc(P[at].name)}</h1>
+    <p class="lead">اختر فرعاً، ثم اضغط + لفتح أسرة، واضغط الاسم لفتح صفحة الشخص.</p>
+    <div class="bpick">${pick}</div>
+    ${crumbs}
     <div class="chips" style="margin-bottom:12px">
-      <button class="btn ghost" id="openAll">فتح الكل</button><button class="btn ghost" id="closeAll">إغلاق الكل</button></div>
-    <div class="panel tree"><ul>${node(P[ROOT], 0)}</ul></div>`;
-  app.querySelectorAll("button.tog").forEach(b => b.onclick = () => { const id = b.dataset.id; OPEN.has(id) ? OPEN.delete(id) : OPEN.add(id); viewTree(); const nb = app.querySelector(`button.tog[data-id="${id}"]`); if (nb) nb.focus(); });
-  document.getElementById("openAll").onclick = () => { DATA.people.forEach(p => p.kids.length && OPEN.add(p.id)); viewTree(); };
-  document.getElementById("closeAll").onclick = () => { OPEN.clear(); OPEN.add(ROOT); viewTree(); };
+      <button class="btn ghost" id="openAll">فتح الكل</button><button class="btn ghost" id="closeAll">إغلاق الكل</button>
+      ${at !== ROOT ? `<a class="btn ghost" href="${hashOf(at)}">صفحة ${esc(P[at].name)}</a>` : ""}</div>
+    <div class="panel tree"><ul>${node(P[at])}</ul></div>`;
+  app.querySelectorAll("button.tog").forEach(b => b.onclick = () => { const id = b.dataset.id; OPEN.has(id) ? OPEN.delete(id) : OPEN.add(id); viewTree(at); const nb = app.querySelector(`button.tog[data-id="${id}"]`); if (nb) nb.focus(); });
+  document.getElementById("openAll").onclick = () => { OPEN.add(at); descendants(at).forEach(k => P[k].kids.length && OPEN.add(k)); viewTree(at); };
+  document.getElementById("closeAll").onclick = () => { OPEN.clear(); OPEN.add(at); viewTree(at); };
+}
+
+// ---------- أرقام العائلة
+function viewStats(){
+  const root = P[ROOT], rk = kidsOf(root).filter(k => k.kids.length);
+  const bc = rk.map(k => [k, descendants(k.id).size]).sort((x, y) => y[1] - x[1]);
+  const mx = Math.max(...bc.map(x => x[1]));
+  const byGen = {}; DATA.people.forEach(p => { const d = depthOf(p); byGen[d] = (byGen[d] || 0) + 1; });
+  const gmx = Math.max(...Object.values(byGen));
+  const names = {}; DATA.people.filter(p => p.id !== ROOT).forEach(p => names[p.name] = (names[p.name] || 0) + 1);
+  const topN = Object.entries(names).sort((x, y) => y[1] - x[1]).slice(0, 10);
+  const big = DATA.people.slice().sort((x, y) => y.kids.length - x.kids.length).slice(0, 8);
+  const genName = d => ["", "الجد", "الأبناء", "الأحفاد", "أبناء الأحفاد"][d] || `الجيل ${AR(d)}`;
+  const males = DATA.people.filter(isM).length, females = DATA.people.filter(isF).length;
+  app.innerHTML = `<h1>أرقام العائلة</h1>
+    <p class="lead">أرقام من البيانات المسجلة حتى الآن (${esc(DATA.updated)}). تكبر كلما أُضيفت فروع وأسماء جديدة.</p>
+    <div class="stats">
+      <div class="stat"><b>${AR(DATA.people.length)}</b><span>شخصاً مسجلاً</span></div>
+      <div class="stat"><b>${AR(males)}</b><span>ذكور</span></div>
+      <div class="stat"><b>${AR(females)}</b><span>إناث</span></div>
+      <div class="stat"><b>${AR(Object.keys(byGen).length)}</b><span>أجيال</span></div>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <section class="panel"><h2 style="margin-top:0">الذرية في كل فرع</h2><div class="bars">
+        ${bc.map(([k, n]) => `<div class="bar"><a href="#tree-${k.id.replace(/\./g, "-")}">${esc(k.name)}</a><div class="tr"><div class="fl" style="width:${Math.max(3, n / mx * 100)}%"></div></div><span class="v">${AR(n)}</span></div>`).join("")}
+      </div><p class="empty" style="margin:10px 0 0">من تزوج من فرعين يُحسب في الفرعين.</p></section>
+      <section class="panel"><h2 style="margin-top:0">الأجيال</h2><div class="bars">
+        ${Object.entries(byGen).map(([d, n]) => `<div class="bar"><span>${genName(+d)}</span><div class="tr"><div class="fl" style="width:${Math.max(3, n / gmx * 100)}%;background:var(--gold)"></div></div><span class="v">${AR(n)}</span></div>`).join("")}
+      </div></section>
+      <section class="panel"><h2 style="margin-top:0">أكثر الأسماء تكراراً</h2><ol class="rank">
+        ${topN.map(([n, c]) => `<li><span>${esc(n)}</span><span class="v">${AR(c)} مرات</span></li>`).join("")}
+      </ol></section>
+      <section class="panel"><h2 style="margin-top:0">أكبر الأسر</h2><ol class="rank">
+        ${big.map(p => `<li><span><a href="${hashOf(p.id)}" style="color:var(--teal);text-decoration:none">${esc(shortName(p, 3))}</a></span><span class="v">${plural(p.kids.length, "ابن واحد", "ابنان", "أبناء", "ابناً")}</span></li>`).join("")}
+      </ol></section>
+    </div>`;
 }
 
 // ---------- صلة القرابة
@@ -697,7 +813,8 @@ function route(){
   const h = location.hash.slice(1);
   let v = "home";
   if (h.startsWith("p-")) { v = "person"; viewPerson(h.slice(2).replace(/-/g, ".")); }
-  else if (h === "tree") { v = "tree"; viewTree(); }
+  else if (h === "tree" || h.startsWith("tree-")) { v = "tree"; viewTree(h.slice(5).replace(/-/g, ".")); }
+  else if (h === "stats") { v = "stats"; viewStats(); }
   else if (h === "relation") { v = "relation"; viewRelation(); }
   else if (h === "fix") { v = "fix"; viewFix(); }
   else viewHome();
