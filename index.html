@@ -407,11 +407,37 @@ function ancestors(id){ // BFS: ancestor -> {d, next}
   return m;
 }
 function chain(m, top){ const out = [top]; let x = top; while (m.get(x).next) { x = m.get(x).next; out.push(x); } return out; } // من الجد نزولاً
-function relationLabel(a, b, A, B, top){
-  const da = A.get(top).d, db = B.get(top).d;
+// كل طرق الصعود من id إلى أجداده: [id, والد, ..., الجد]
+function upPaths(id, depth = 0){
+  const p = P[id], out = [[id]];
+  if (depth > 12) return out;
+  for (const par of [p.father, p.mother]) if (par && P[par])
+    for (const path of upPaths(par, depth + 1)) out.push([id, ...path]);
+  return out;
+}
+// الصلات بين a وb: لكل جهة (والد a أو والدته × والد b أو والدته) أقرب جد مشترك تلتقي عنده طريقان لا يشتركان في غيره
+function relConnections(a, b){
+  const PA = upPaths(a), PB = upPaths(b), byTop = {};
+  PB.forEach(q => (byTop[q[q.length - 1]] ||= []).push(q));
+  const best = {};
+  for (const x of PA) {
+    const top = x[x.length - 1];
+    for (const y of byTop[top] || []) {
+      const sx = new Set(x.slice(0, -1));
+      if (y.slice(0, -1).some(n => sx.has(n))) continue;   // يلتقيان قبل هذا الجد
+      const key = (x[1] || "") + "|" + (y[1] || "");
+      const len = x.length + y.length;
+      if (!best[key] || len < best[key].len) best[key] = {len, ca: x.slice().reverse(), cb: y.slice().reverse()};
+    }
+  }
+  const all = Object.values(best).sort((u, v) => u.len - v.len);
+  if (!all.length) return all;
+  if (all[0].ca.length === 2 && all[0].cb.length === 2) return [all[0]];   // إخوة: لا حاجة لغيرها
+  return all.filter(c => c.len <= all[0].len + 1).slice(0, 4);           // الصلات القريبة فقط
+}
+function relationLabel(a, b, ca, cb){ // ca وcb: من الجد المشترك نزولاً إلى a وb
+  const top = ca[0], da = ca.length - 1, db = cb.length - 1;
   const pa = P[a], pb = P[b];
-  const sh = new Set(spouseOf(pa).map(s => s.id));
-  if (sh.has(b)) return `${pa.name} و${pb.name} زوجان`;
   const ab = (p, mWord, fWord) => isF(p) ? fWord : mWord;
   if (da === 0) { // a جد b
     if (db === 1) return `${pa.name} ${ab(pa,"والد","والدة")} ${pb.name}`;
@@ -421,11 +447,10 @@ function relationLabel(a, b, A, B, top){
     if (da === 1) return `${pa.name} ${ab(pa,"ابن","بنت")} ${pb.name}`;
     return `${pa.name} ${ab(pa,"حفيد","حفيدة")} ${pb.name}` + (da > 2 ? ` (من الدرجة ${AR(da-1)})` : "");
   }
-  const ca = chain(A, top), cb = chain(B, top); // [top, ..., a]
   if (da === 1 && db === 1) {
         const sf = pa.father && pa.father === pb.father, sm = pa.mother && pa.mother === pb.mother;
     const g1 = pa.group && pb.group && pa.group !== pb.group;
-    return `${pa.name} و${pb.name} إخوة` + ((sf && sm) || (sf && !g1) ? "" : sf ? " من الأب" : " من الأم");
+    return `${pa.name} و${pb.name} إخوة` + (sf && sm ? " أشقاء" : sf && !g1 ? "" : sf ? " من الأب" : " من الأم");
   }
   if (da === 1 && db === 2) { // a عم/خال b
     const par = P[cb[1]];
@@ -436,7 +461,8 @@ function relationLabel(a, b, A, B, top){
     return `${pb.name} ${isM(par) ? ab(pb,"عم","عمة") : ab(pb,"خال","خالة")} ${pa.name}`;
   }
   // y ابن/بنت (عم/عمة/خال/خالة) x — حيث px والد x وpy والد y وهما إخوة
-  const kinOf = (x, px, y, py) => `${ab(y,"ابن","بنت")} ${isM(px) ? (isM(py) ? "عم" : "عمة") : (isM(py) ? "خال" : "خالة")} ${x.name}`;
+  const kinW = (px, y, py) => `${ab(y,"ابن","بنت")} ${isM(px) ? (isM(py) ? "عم" : "عمة") : (isM(py) ? "خال" : "خالة")}`;
+  const kinOf = (x, px, y, py) => `${kinW(px, y, py)} ${x.name}`;
   if (da === 2 && db === 2) return `${pb.name} ${kinOf(pa, P[ca[1]], pb, P[cb[1]])}`;
   const up = (p, n) => n === 1 ? ab(p,"والد","والدة") : n === 2 ? ab(p,"جد","جدة") : ab(p,"جد","جدة") + ` من الدرجة ${AR(n-1)}`;
   if (da === 1 || db === 1) { // أحدهما أخو جدّ الآخر
@@ -446,6 +472,10 @@ function relationLabel(a, b, A, B, top){
   }
   const n = Math.min(da, db) - 1, ord = ["","الأولى","الثانية","الثالثة","الرابعة","الخامسة"][n] || AR(n);
   const meet = `يلتقيان في ${P[top].name}`;
+  if (da === db && n === 2) { // والداهما أبناء عم/خال
+    const xa = P[ca[da-1]], xb = P[cb[db-1]];
+    return `${xb.name} (${ab(xb,"والد","والدة")} ${pb.name}) ${kinW(P[ca[1]], xb, P[cb[1]])} ${xa.name} (${ab(xa,"والد","والدة")} ${pa.name})`;
+  }
   if (da === db) return `${pa.name} و${pb.name} أقارب من الدرجة ${ord}: ${meet}`;
   const [old, yng, cold, cyng, dold, dyng] = da < db ? [pa, pb, ca, cb, da, db] : [pb, pa, cb, ca, db, da];
   const anc = P[cyng[dold]];
@@ -478,24 +508,23 @@ function drawRel(){
   if (!REL.a || !REL.b) { out.innerHTML = ""; return; }
   const live = document.getElementById("live");
   if (REL.a === REL.b) { out.innerHTML = `<div class="panel">اخترت الشخص نفسه مرتين.</div>`; live.textContent = "اخترت الشخص نفسه مرتين."; return; }
-  const A = ancestors(REL.a), B = ancestors(REL.b);
-  const common = [...A.keys()].filter(k => B.has(k)).map(k => ({k, s: A.get(k).d + B.get(k).d}));
-  if (!common.length) { out.innerHTML = `<div class="panel">لا يوجد جد مشترك مسجل بينهما بعد.</div>`; live.textContent = "لا يوجد جد مشترك مسجل بينهما بعد."; return; }
-  common.sort((x, y) => x.s - y.s);
-  // أقرب الأجداد المشتركين، مع استبعاد من هو جد لجد مشترك آخر
-  const tops = [];
-  for (const c of common) {
-    if (tops.some(t => ancestors(t).has(c.k))) continue;
-    tops.push(c.k); if (tops.length === 2) break;
-  }
-  out.innerHTML = tops.map((top, i) => {
-    const ca = chain(A, top), cb = chain(B, top);
+  const conns = relConnections(REL.a, REL.b);
+  if (!conns.length) { out.innerHTML = `<div class="panel">لا يوجد جد مشترك مسجل بينهما بعد.</div>`; live.textContent = "لا يوجد جد مشترك مسجل بينهما بعد."; return; }
+  const pa = P[REL.a], pb = P[REL.b];
+  const married = spouseOf(pa).some(x => x.id === REL.b);
+  const seen = new Set();
+  const shown = conns.map(c => ({...c, label: relationLabel(REL.a, REL.b, c.ca, c.cb)})).filter(c => !seen.has(c.label) && seen.add(c.label));
+  const side = (x, c) => c.length < 2 ? "" : (isM(P[c[c.length - 2]]) ? "أب" : "أم") + " " + x.name;
+  out.innerHTML = (married ? `<div class="panel"><h2 class="verdict" tabindex="-1">${esc(pa.name)} و${esc(pb.name)} زوجان</h2>
+      <div class="grouplbl" style="margin:6px 0 0">وصلة القرابة بينهما:</div></div>` : "") + shown.map(({ca, cb, label}, i) => {
+    const top = ca[0];
+    const sides = [side(pa, ca), side(pb, cb)].filter(Boolean);
     const col = arr => `<div class="col" aria-hidden="true">${arr.slice(1).reverse().map((id, j) => (j ? `<div class="arrow">▲</div>` : "") + chip(P[id])).join("")}</div>`;
     const say = arr => arr.slice().reverse().map((id, j, a) => j < a.length - 1 ? `${P[id].name} ${isF(P[id]) ? "بنت" : "ابن"}` : P[id].name).join(" ");
     const srPath = `<p class="sr-only">الطريق من الطرف الأول: ${esc(say(ca))}. والطريق من الطرف الثاني: ${esc(say(cb))}.</p>`;
     return `<div class="panel">
-      ${i ? `<div class="grouplbl">وتربطهما صلة أخرى من جهة ثانية:</div>` : ""}
-      <h2 class="verdict" tabindex="-1">${esc(relationLabel(REL.a, REL.b, A, B, top))}</h2>
+      ${shown.length > 1 && sides.length ? `<div class="grouplbl">${i ? "وصلة أخرى " : ""}من جهة ${esc(sides.join(" و"))}:</div>` : ""}
+      <h2 class="verdict" tabindex="-1">${esc(label)}</h2>
       <div class="apex"><span class="sr-only">الجد المشترك: </span>${chip(P[top], "hl")}<div class="cnt" aria-hidden="true">الجد المشترك</div></div>
       ${srPath}<div class="path">${ca.length > 1 ? col(ca) : ""}${cb.length > 1 ? col(cb) : ""}</div>
     </div>`;
