@@ -21,7 +21,7 @@ def mark(p):
     page_of.setdefault(p["id"], CUR[0])
 
 def label(p):
-    d = ' <span class="dead">†</span>' if p["dead"] else ""
+    d = ' <span class="dead">(ر)</span>' if p["dead"] else ""
     return f'{E(p["name"])} <span class="sym">{SYM[p["gender"]]}</span>{d}'
 
 def spouse_txt(p):
@@ -33,13 +33,13 @@ def node(p, subs=(), extra="", show_spouse=True):
     if show_spouse and p["spouse"]: lines.append(spouse_txt(p))
     lines += [s for s in subs if s]
     sub = "".join(f'<div class="sub">{l}</div>' for l in lines)
-    return f'<div class="node {CLS[p["gender"]]} {extra}"><div class="nm">{label(p)}</div>{sub}</div>'
+    return f'<div class="node {CLS[p["gender"]]} {"dd" if p["dead"] else ""} {extra}"><div class="nm">{label(p)}</div>{sub}</div>'
 
 def grp(text): return f'<div class="node grp">{E(text)}</div>'
 
 def kids_summary(p):
     ks = children(p["id"])
-    parts = [E(c["name"]) + (" †" if c["dead"] else "") for c in ks]
+    parts = [E(c["name"]) + (" (ر)" if c["dead"] else "") for c in ks]
     for c in ks: mark(c)
     if p["unknown"]: parts.append(E(p["unknown"]))
     return ("الأبناء: " + "، ".join(parts)) if parts else ""
@@ -48,7 +48,7 @@ def chip(p, subs=(), extra=""):
     mark(p)
     lines = [s for s in subs if s]
     sb = "".join(f'<span class="csub">{l}</span>' for l in lines)
-    return f'<div class="chip {CLS[p["gender"]]} {extra}">{label(p)}{sb}</div>'
+    return f'<div class="chip {CLS[p["gender"]]} {"dd" if p["dead"] else ""} {extra}">{label(p)}{sb}</div>'
 
 def unk(text): return f'<div class="chip u dashed">؟ {E(text)}</div>'
 
@@ -352,7 +352,7 @@ def short(p):
 def key(p):
     n = p["name"]; return (n[2:] if n.startswith("ال") else n, full_name(p))
 idx = sorted([p for p in people if p["id"] in page_of], key=key)
-rowl = [f'<div class="ix"><span class="ixn">{E(short(p))}{" †" if p["dead"] else ""}</span>'
+rowl = [f'<div class="ix"><span class="ixn">{E(short(p))}{" (ر)" if p["dead"] else ""}</span>'
         f'<span class="ixp">{pg(page_of[p["id"]])}</span></div>' for p in idx]
 missing_idx = [p["name"] for p in people if p["id"] not in page_of]
 PER = 84
@@ -371,7 +371,7 @@ legend = """
 <tr><td><div class="chip m">اسم <span class="sym">♂</span></div></td><td>ذكر</td></tr>
 <tr><td><div class="chip f">اسم <span class="sym">♀</span></div></td><td>أنثى</td></tr>
 <tr><td class="big"><span class="mar">⚭</span></td><td>متزوج من</td></tr>
-<tr><td class="big dead">†</td><td>متوفى، رحمه الله</td></tr>
+<tr><td><div class="chip m dd">اسم <span class="sym">♂</span> <span class="dead">(ر)</span></div></td><td>متوفى، رحمه الله (المربع الرمادي و«ر»)</td></tr>
 <tr><td class="big">★</td><td>سنة الميلاد</td></tr>
 <tr><td><div class="chip u dashed">؟</div></td><td>معلومة ناقصة نرجو من يعرفها أن يخبرنا بها</td></tr>
 <tr><td class="big">←</td><td>انظر صفحة أخرى في الكتاب</td></tr>

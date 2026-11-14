@@ -69,7 +69,9 @@ h2{font-size:19px;margin:28px 0 10px;color:var(--teal)}
 .chip.hl{box-shadow:0 0 0 2.5px var(--gold)}
 .chip:hover:not(.dash){filter:brightness(.96)}
 .sym{color:#6a7a80;font-size:.9em}
-.dead{color:#7a4b2a;font-weight:700}
+.dead{color:#5f6a6e;font-weight:500;font-size:.85em}
+.deadfull{font-size:.45em;color:#6b777b;font-weight:500;vertical-align:middle}
+.chip.m.dd,.chip.f.dd,.chip.u.dd{border-color:#97a2a6;background:#eceeee}
 .grouplbl{font-size:13px;color:var(--muted);margin:10px 0 6px}
 .crumbs{font-size:14px;color:var(--muted);margin-bottom:10px;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
 .crumbs a{text-decoration:none;color:var(--teal2)}
@@ -193,10 +195,10 @@ function spouseOf(p){ // زوج من داخل الشجرة (عبر الأبنا�
   kidsOf(p).forEach(k => { [k.father,k.mother].forEach(x => { if (x && x !== p.id && P[x]) s.add(x); }); });
   return [...s].map(id => P[id]);
 }
-function deadMark(p){ return p.dead ? ` <span class="dead" aria-hidden="true">†</span><span class="sr-only">، ${isF(p) ? "رحمها" : "رحمه"} الله</span>` : ""; }
+function deadMark(p, full){ return p.dead ? (full ? ` <span class="deadfull">${isF(p) ? "رحمها" : "رحمه"} الله</span>` : ` <span class="dead" aria-hidden="true">(ر)</span><span class="sr-only">، ${isF(p) ? "رحمها" : "رحمه"} الله</span>`) : ""; }
 const symH = p => `<span class="sym" aria-hidden="true">${SYM[p.gender]}</span>`;
 function chip(p, extra="", label){
-  return `<a class="chip ${G[p.gender]} ${extra}" href="${hashOf(p.id)}">${esc(label || p.name)} ${symH(p)}${deadMark(p)}</a>`;
+  return `<a class="chip ${G[p.gender]} ${p.dead ? "dd" : ""} ${extra}" href="${hashOf(p.id)}">${esc(label || p.name)} ${symH(p)}${deadMark(p)}</a>`;
 }
 const unk = t => `<span class="chip dash">؟ ${esc(t)}</span>`;
 
@@ -254,7 +256,7 @@ function wireSearch(box, onPick){
   const live = document.getElementById("live");
   const draw = () => {
     res.innerHTML = (fuzzy ? `<div class="rnote">لم نجد الاسم كما كُتب، هل تقصد:</div>` : "") +
-      items.map((p,i) => `<button data-i="${i}">${esc(p.name)} <span aria-hidden="true">${SYM[p.gender]}${p.dead?' †':''}</span><small>${esc(shortName(p,6))}${p.dead ? (isF(p)?"، رحمها الله":"، رحمه الله") : ""}</small></button>`).join("")
+      items.map((p,i) => `<button data-i="${i}">${esc(p.name)} <span aria-hidden="true">${SYM[p.gender]}${p.dead?' (ر)':''}</span><small>${esc(shortName(p,6))}${p.dead ? (isF(p)?"، رحمها الله":"، رحمه الله") : ""}</small></button>`).join("")
       + (more ? `<div class="rnote">وهناك ${AR(more)} غيرهم. اكتب اسم الأب بعد الاسم لتضييق البحث.</div>` : "")
       || (inp.value.trim() ? `<div class="rnote">لا توجد نتائج. اكتب الاسم الأول فقط.</div>` : "");
     res.classList.toggle("show", !!inp.value.trim());
@@ -337,7 +339,7 @@ function viewHome(){
     <div class="legend">
       <span class="chip m">اسم <span class="sym">♂</span></span> ذكر
       <span class="chip f">اسم <span class="sym">♀</span></span> أنثى
-      <span><span class="dead" aria-hidden="true">†</span> متوفى، رحمه الله</span>
+      <span><span class="chip m dd" style="cursor:default">اسم <span class="dead">(ر)</span></span> متوفى، رحمه الله</span>
       <span>⚭ متزوج من</span>
       ${unk("معلومة ناقصة")}
     </div>`;
@@ -371,7 +373,7 @@ function viewPerson(id){
     <div class="panel"><div class="pcard">
       <div class="avatar ${G[p.gender]}" aria-hidden="true">${SYM[p.gender] || "؟"}</div>
       <div style="flex:1;min-width:220px">
-        <h1 class="pname" tabindex="-1" id="ptitle">${esc(p.name)}${deadMark(p)}</h1>
+        <h1 class="pname" tabindex="-1" id="ptitle">${esc(p.name)}${deadMark(p, true)}</h1>
         <div class="full">${esc(shortName(p, 8))}</div>
         <div class="facts">${facts.join("")}</div>
         ${meBox(p)}
@@ -381,7 +383,7 @@ function viewPerson(id){
     </div></div>
     <section class="panel" aria-label="الأسرة"><div class="mini">
       ${parentsRow ? `<div class="row"><span class="sr-only">الوالدان:</span>${parentsRow}</div><div class="vline"></div>` : ""}
-      <div class="row"><span class="chip ${G[p.gender]} me" aria-hidden="true">${esc(p.name)} ${symH(p)}</span>
+      <div class="row"><span class="chip ${G[p.gender]} ${p.dead ? "dd" : ""} me" aria-hidden="true">${esc(p.name)} ${symH(p)}${p.dead ? ` <span class="dead">(ر)</span>` : ""}</span>
         ${spouses.map(s => `<span style="align-self:center;color:var(--f)" aria-hidden="true">⚭</span><span class="sr-only">${isF(p)?"زوجها":"زوجته"}:</span>` + chip(s, "", shortName(s,4))).join("")}</div>
       ${kidsRow ? `<div class="vline"></div><div class="row" aria-hidden="true">${kidsRow}</div>` : ""}
     </div></section>
@@ -700,7 +702,7 @@ function route(){
   renderMeBar(v);
   document.querySelectorAll("#nav a").forEach(a => { a.classList.toggle("on", a.dataset.v === v); a.toggleAttribute("aria-current", a.dataset.v === v); });
   const h1 = app.querySelector("h1");
-  document.title = (h1 && v !== "home" ? h1.textContent.replace("†","").trim() + " · " : "") + "عائلة البشيراب";
+  document.title = (h1 && v !== "home" ? h1.textContent.replace(/رحم(ه|ها) الله/,"").trim() + " · " : "") + "عائلة البشيراب";
   if (FIRST) FIRST = false; else if (h1) { h1.setAttribute("tabindex", "-1"); h1.focus(); }
 }
 let FIRST = true;

@@ -74,7 +74,8 @@ p { font-size: 12.5px; line-height: 1.9; margin: 4px 0; }
 .mar { font-size: 1.35em; color: #b05a7d; }
 .grid2 .cell { min-height: 95mm; display:flex; align-items:flex-start; justify-content:center; }
 
-.dead { color: #7a4b2a; font-weight: bold; }
+.dead { color: #5f6a6e; font-weight: normal; font-size: .85em; }
+.m.dd, .f.dd, .u.dd { border-color: #8f9a9e; background: #eceeee; }
 .head { border-width: 2.4px; border-color: #c9a227; background: #fdf8e7; padding: 8px 20px; }
 .head .nm { font-size: 16px; }
 .fam-top { display: flex; justify-content: center; position: relative; padding-bottom: 14px; }
