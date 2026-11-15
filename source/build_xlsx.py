@@ -49,7 +49,7 @@ ws.row_dimensions[1].height = 32
 for r, p in enumerate(order, 2):
     vals = [p["id"], p["name"], p["gender"], p["father"] or None, p["mother"] or None,
             p["father_txt"] or None, p["group"] or None, p["spouse"] or None,
-            "نعم" if p["dead"] else None, None, None, p["unknown"] or None, p["notes"] or None]
+            "نعم" if p["dead"] else None, None, None, p["unknown"] or None, " · ".join(v for v in ([f"«{p['alias']}»"] if p.get("alias") else []) + [p["notes"]] if v) or None]
     for c, v in enumerate(vals, 1):
         cell = ws.cell(row=r, column=c, value=v)
         if c in (1, 4, 5):

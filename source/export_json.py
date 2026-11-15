@@ -11,7 +11,7 @@ FORM_TO = "646148ff6d3244c29aacb496f58ddab4"
 out = []
 for p in people:
     q = {k: p[k] for k in ("id", "name", "gender", "father", "mother", "father_txt",
-                            "group", "spouse", "notes", "dead", "unknown")}
+                            "group", "spouse", "notes", "dead", "unknown", "alias")}
     q["kids"] = [c["id"] for c in children(p["id"])]
     out.append(q)
 data = {"people": out, "updated": CHANGELOG[0][0], "changes": CHANGELOG,

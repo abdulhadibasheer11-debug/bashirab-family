@@ -279,8 +279,10 @@ function spouseOf(p){ // زوج من داخل الشجرة (عبر الأبنا�
 }
 function deadMark(p, full){ return p.dead ? (full ? ` <span class="deadfull">${isF(p) ? "رحمها" : "رحمه"} الله</span>` : ` <span class="dead" aria-hidden="true">(ر)</span><span class="sr-only">، ${isF(p) ? "رحمها" : "رحمه"} الله</span>`) : ""; }
 const symH = p => `<span class="sym" aria-hidden="true">${SYM[p.gender]}</span>`;
+// الاسم مع اللقب (بالرطانة) — لصاحبه فقط، ولا يدخل في نسب أبنائه
+const nm = p => p.name + (p.alias ? ` «${p.alias}»` : "");
 function chip(p, extra="", label){
-  return `<a class="chip ${G[p.gender]} ${p.dead ? "dd" : ""} ${extra}" href="${hashOf(p.id)}">${esc(label || p.name)} ${symH(p)}${deadMark(p)}</a>`;
+  return `<a class="chip ${G[p.gender]} ${p.dead ? "dd" : ""} ${extra}" href="${hashOf(p.id)}">${esc(label || nm(p))} ${symH(p)}${deadMark(p)}</a>`;
 }
 const unk = t => `<span class="chip dash">؟ ${esc(t)}</span>`;
 
@@ -303,7 +305,7 @@ const SKEY = {};
 function skeys(p){ // الاسم مع نسبه من جهة الأب، ومن جهة الأم
   if (SKEY[p.id]) return SKEY[p.id];
   const viaMother = p.mother && P[p.mother] ? norm(p.name) + norm(lineage(P[p.mother])) : "";
-  return SKEY[p.id] = {name: norm(p.name), line: norm(lineage(p)), mline: viaMother};
+  return SKEY[p.id] = {name: norm(p.name), line: norm(lineage(p)), mline: viaMother, alias: norm(p.alias || "")};
 }
 const MAXR = 8;
 const nRes = n => n === 2 ? "نتيجتان" : `${AR(n)} ${n >= 3 && n <= 10 ? "نتائج" : "نتيجة"}`;
@@ -313,9 +315,9 @@ function searchList(q){
   const scored = [];
   DATA.people.forEach(p => {
     const k = skeys(p); let s = -1;
-    if (k.name === q) s = 0;                                         // الاسم نفسه
+    if (k.name === q || (k.alias && k.alias === q)) s = 0;          // الاسم نفسه أو لقبه
     else if (k.line.startsWith(q) || k.mline.startsWith(q)) s = 1;   // الاسم ثم الأب ثم الجد…
-    else if (k.name.startsWith(q)) s = 2;                            // بداية الاسم
+    else if (k.name.startsWith(q) || (k.alias && k.alias.startsWith(q))) s = 2;   // بداية الاسم أو اللقب
     else if (q.length >= 3 && (k.line.includes(q) || k.mline.includes(q))) s = 3;
     if (s >= 0) scored.push({p, s, len: k.line.length});
   });
@@ -338,7 +340,7 @@ function wireSearch(box, onPick){
   const live = document.getElementById("live");
   const draw = () => {
     res.innerHTML = (fuzzy ? `<div class="rnote">لم نجد الاسم كما كُتب، هل تقصد:</div>` : "") +
-      items.map((p,i) => `<button data-i="${i}">${esc(p.name)} <span aria-hidden="true">${SYM[p.gender]}${p.dead?' (ر)':''}</span><small>${esc(shortName(p,6))}${p.dead ? (isF(p)?"، رحمها الله":"، رحمه الله") : ""}</small></button>`).join("")
+      items.map((p,i) => `<button data-i="${i}">${esc(nm(p))} <span aria-hidden="true">${SYM[p.gender]}${p.dead?' (ر)':''}</span><small>${esc(shortName(p,6))}${p.dead ? (isF(p)?"، رحمها الله":"، رحمه الله") : ""}</small></button>`).join("")
       + (more ? `<div class="rnote">وهناك ${AR(more)} غيرهم. اكتب اسم الأب بعد الاسم لتضييق البحث.</div>` : "")
       || (inp.value.trim() ? `<div class="rnote">لا توجد نتائج. اكتب الاسم الأول فقط.</div>` : "");
     res.classList.toggle("show", !!inp.value.trim());
@@ -496,7 +498,7 @@ function viewPerson(id){
     <div class="panel"><div class="pcard">
       <div class="avatar ${G[p.gender]}" aria-hidden="true">${SYM[p.gender] || "؟"}</div>
       <div style="flex:1;min-width:220px">
-        <h1 class="pname" tabindex="-1" id="ptitle">${esc(p.name)}${deadMark(p, true)}</h1>
+        <h1 class="pname" tabindex="-1" id="ptitle">${esc(nm(p))}${deadMark(p, true)}</h1>
         <div class="full">${esc(shortName(p, 8))}</div>
         <div class="facts">${facts.join("")}</div>
         ${meBox(p)}
@@ -506,7 +508,7 @@ function viewPerson(id){
     </div></div>
     <section class="panel" aria-label="الأسرة"><div class="mini">
       ${parentsRow ? `<div class="row"><span class="sr-only">الوالدان:</span>${parentsRow}</div><div class="vline"></div>` : ""}
-      <div class="row"><span class="chip ${G[p.gender]} ${p.dead ? "dd" : ""} me" aria-hidden="true">${esc(p.name)} ${symH(p)}${p.dead ? ` <span class="dead">(ر)</span>` : ""}</span>
+      <div class="row"><span class="chip ${G[p.gender]} ${p.dead ? "dd" : ""} me" aria-hidden="true">${esc(nm(p))} ${symH(p)}${p.dead ? ` <span class="dead">(ر)</span>` : ""}</span>
         ${spouses.map(s => `<span style="align-self:center;color:var(--f)" aria-hidden="true">⚭</span><span class="sr-only">${isF(p)?"زوجها":"زوجته"}:</span>` + chip(s, "", shortName(s,4))).join("")}</div>
       ${kidsRow ? `<div class="vline"></div><div class="row" aria-hidden="true">${kidsRow}</div>` : ""}
     </div></section>
@@ -536,7 +538,7 @@ function viewTree(at){
   const card = k => {
     const n = k.kids.length, d = descendants(k.id).size;
     return `<a class="tcard ${G[k.gender]} ${k.dead ? "dd" : ""} ${n ? "" : "leaf"}" href="${n ? tid(k.id) : hashOf(k.id)}">
-      <span class="tn">${esc(k.name)} ${symH(k)}${k.dead ? ' <span class="dead">(ر)</span>' : ""}</span>
+      <span class="tn">${esc(nm(k))} ${symH(k)}${k.dead ? ' <span class="dead">(ر)</span>' : ""}</span>
       ${k.spouse ? `<span class="ts">⚭ ${esc(k.spouse)}</span>` : ""}
       <span class="tk">${n ? plural(n, "ابن واحد", "ابنان", "أبناء", "ابناً") + (d > n ? ` · ذرية ${AR(d)}` : "") + " ›" : (k.unknown ? "؟ " + esc(k.unknown) : (isF(k) ? "صفحتها ›" : "صفحته ›"))}</span></a>`;
   };
@@ -547,7 +549,7 @@ function viewTree(at){
     <div class="tview">
       ${path.length ? `<nav class="tpath" aria-label="المسار">${path.map(a => `<a href="${tid(a.id)}">${esc(a.name)}</a>`).join(" ‹ ")} ‹ <b>${esc(h.name)}</b></nav>` : ""}
       <div class="thead ${G[h.gender]} ${h.dead ? "dd" : ""}">
-        <div class="thn">${esc(h.name)} ${symH(h)}${h.dead ? ' <span class="dead">(ر)</span>' : ""}</div>
+        <div class="thn">${esc(nm(h))} ${symH(h)}${h.dead ? ' <span class="dead">(ر)</span>' : ""}</div>
         <div class="ths">${at === ROOT ? "الجد الأكبر" : esc(shortName(h, 6))}</div>
         ${h.spouse ? `<div class="ths">⚭ ${esc(h.spouse)}</div>` : ""}
         <div class="thc">${kids.length ? plural(kids.length, "ابن واحد", "ابنان", "أبناء", "ابناً") : "لا أبناء مسجلون"}${nd > kids.length ? ` · ذرية مسجلة ${AR(nd)}` : ""}</div>

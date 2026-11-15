@@ -3,10 +3,10 @@ M, F, U = "ذكر", "أنثى", "غير معروف"
 
 people = []
 def P(id, name, g, father=None, mother=None, father_txt="", group="", spouse="",
-      notes="", dead=False, unknown=""):
+      notes="", dead=False, unknown="", alias=""):
     people.append(dict(id=id, name=name, gender=g, father=father, mother=mother,
                        father_txt=father_txt, group=group, spouse=spouse, notes=notes,
-                       dead=dead, unknown=unknown))
+                       dead=dead, unknown=unknown, alias=alias))
 
 def kids(parent, items, father=None, mother=None, father_txt="", group="", start=1):
     """items: list of (name, gender) or dicts of extra fields"""
@@ -36,7 +36,7 @@ root_kids = [   # (الرقم، الاسم، الجنس، الأم، حقول إ
 # الرقمان 1.3 و1.7 كانا لكلتوم (وهي الزوجة الأولى لا بنت) وعبد الدائم (وهو أخو الجد لا ابنه)
 for i, n, g, grp, ex in root_kids:
     P(f"1.{i}", n, g, father="1", group=grp, **ex)
-next(p for p in people if p["id"] == "1.6").update(notes="«عبدون»", dead=True)   # كان مسجلاً خطأً باسم «الحاج»
+next(p for p in people if p["id"] == "1.6").update(alias="عبدون", dead=True)   # كان مسجلاً خطأً باسم «الحاج»
 
 # ===== أزواج من فروع أخرى (ترتيبهم بين إخوتهم غير معروف)
 OTHER = "ترتيبه بين إخوته غير معروف"
@@ -68,12 +68,12 @@ kids("1.11.7", [("ياسر", M), ("عمار", M), ("أحمد", M), ("محمد", 
 P("1.5.1", "علي", M, father="1.5", spouse="زينب محمد عثمان محمد بشير، ثم زوجة ثانية")  # علي خيري
 kids("1.5", [("محمد", M), ("زينب", F), ("شامة", F)], father="1.5", start=2)
 P("1.5.1.1", "محمود", M, father="1.5.1", spouse="نفيسة عبد المنعم محمد عثمان", group="الزوجة الثانية")
-P("1.6.1", "الحاج محمد", M, father="1.6", dead=True, notes="«حانجمت»")   # ابن عبد الله (عبدون)
+P("1.6.1", "الحاج محمد", M, father="1.6", dead=True, alias="حانجمت")   # ابن عبد الله (عبدون)
 P("1.6.1.1", "عبد الله", M, father="1.6.1", dead=True, notes="له ثلاث زوجات",
   spouse="رقية طمبل حسين طمبل بشير (ر) «اللقية»، وزوجتان أخريان")
 LQ = "الزوجة الثانية: رقية طمبل «اللقية»"
 P("1.6.1.1.1", "نجوى", F, father="1.6.1.1", group=LQ, spouse="مصطفى حسن", notes="كبرى أبنائها")
-P("1.6.1.1.2", "محمد", M, father="1.6.1.1", group=LQ, dead=True, notes="شهير بمحمد عبدون",
+P("1.6.1.1.2", "محمد", M, father="1.6.1.1", group=LQ, dead=True, alias="عبدون",
   unknown="٣ بنات وولدان")
 P("1.6.1.1.3", "كمال", M, father="1.6.1.1", group=LQ, spouse="وداد عبد المنعم محمد عثمان")
 P("1.6.1.1.4", "إقبال", F, father="1.6.1.1", group=LQ)
@@ -316,7 +316,7 @@ kids(f"{Z}.2.2", [("وافي", M), ("أحمد", M)], mother=f"{Z}.2.2", father_t
 # ----- أسرة جارة بنت بشير (1.10.2)
 J = "1.10.2"
 kids(J, [("بشير", M, {"notes": "له زوجتان"}),
-         ("السر", M, {"notes": "يُنادى أيضاً: سري", "unknown": "٥ أبناء تقريباً (غير مؤكد)"}),
+         ("السر", M, {"alias": "سري", "unknown": "٥ أبناء تقريباً (غير مؤكد)"}),
          ("خدم الله", F, {"unknown": "أبناء لم تُعرف أسماؤهم ولا عددهم"}),
          ("عائشة", F), ("فاطمة", F, {"spouse": "سيد أحمد فضل محمد بشير (ر)"})], mother=J)
 P(f"{J}.1.1", "دياب", M, father=f"{J}.1", group="الزوجة الأولى")
@@ -356,7 +356,7 @@ for _i in range(1, 7):
 # من الزوجة الثانية: محمد وفاطمة (تكرار الأسماء بين الزوجتين كان مألوفاً)
 P(f"{DY}.7", "محمد", M, father=DY, group="الزوجة الثانية", notes="ليس له أبناء")
 P(f"{DY}.8", "فاطمة", F, father=DY, group="الزوجة الثانية")
-P(f"{DY}.8.1", "محمد", M, mother=f"{DY}.8", notes="شهير بـ«تاجرتود»")
+P(f"{DY}.8.1", "محمد", M, mother=f"{DY}.8", alias="تاجرتود")
 P(f"{DY}.9", "فرح", M, father=DY, group="الزوجة الثانية", dead=True)
 kids(f"{DY}.9", [("تومة", F), ("محمد", M)], father=f"{DY}.9")
 # محمد دياب زوج جارة بنت بشير وأبو أبنائها
@@ -384,7 +384,7 @@ _set(HN, spouse="قسيمة طمبل حسين طمبل بشير", unknown="رب�
 kids(HN, [("دياب", M), ("الفاتح", M), ("عمر", M), ("هدى", F), ("سلوى", F)], father=HN)
 kids(f"{HN}.1", [("مازن", M), ("إياد", M)], father=f"{HN}.1")
 
-kids(f"{DY}.4", [("عبد المنعم", M, {"notes": "لقبه: عبده ربه"}), ("سعيدة", F), ("علوية", F)],
+kids(f"{DY}.4", [("عبد المنعم", M, {"alias": "عبده ربه"}), ("سعيدة", F), ("علوية", F)],
      mother=f"{DY}.4", father_txt="أحمد حسين طمبل")
 
 AR5 = f"{DY}.5"  # آمنة ⚭ إرساوي
