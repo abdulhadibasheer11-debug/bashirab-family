@@ -307,7 +307,7 @@ for c in children("1.11"):
         subs = [E(c["notes"]) if c["notes"] else ""]; inner = gchips(c)
     cards += f'<div class="card">{node(c, subs)}{inner}</div>'
 page("ch3", '<div class="chapter-head">الفصل الثالث</div>' +
-     f'<div style="zoom:1.15"><div class="fam-top">{node(by_id["1.11"], ["ابن الجد محمد بشير"], "head")}</div>'
+     f'<div style="zoom:1.04"><div class="fam-top">{node(by_id["1.11"], ["ابن الجد محمد بشير"], "head")}</div>'
      f'<div class="fgrid" style="grid-template-columns:repeat(4,minmax(0,1fr))">{cards}</div></div>' +
      note("أبناء فضل كلهم متوفون إلا مهدي ونصرة، رحمهم الله. "
           f"سيد أحمد تزوج فاطمة بنت جارة بنت بشير ← صفحة {pg('jara')}. "
