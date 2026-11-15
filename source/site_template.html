@@ -389,7 +389,7 @@ function descendants(id){ // كل الذرية المسجلة (بلا تكرار
 }
 function depthOf(p){ let d = 1, q = p; while ((q.father && P[q.father]) || (q.mother && P[q.mother])) { q = P[q.father] || P[q.mother]; d++; } return d; }
 function branchGens(id){ const base = depthOf(P[id]); let m = base; descendants(id).forEach(k => m = Math.max(m, depthOf(P[k]))); return m - base + 1; }
-const DOCUMENTED = ["1.10", "1.12", "1.11", "1.9", "1.1", "1.5"];
+const DOCUMENTED = ["1.10", "1.12", "1.11", "1.9", "1.1", "1.5", "1.6"];
 const plural = (n, one, two, few, many) => n === 1 ? one : n === 2 ? two : n <= 10 ? `${AR(n)} ${few}` : `${AR(n)} ${many}`;
 const app = document.getElementById("app");
 function viewHome(){
