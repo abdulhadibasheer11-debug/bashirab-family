@@ -23,9 +23,13 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="البشيراب">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Amiri:wght@700&display=swap" rel="stylesheet">
+<link rel="preload" href="fonts/plex-Regular.woff" as="font" type="font/woff" crossorigin>
+<link rel="preload" href="fonts/plex-Bold.woff" as="font" type="font/woff" crossorigin>
 <style>
+@font-face{font-family:"IBM Plex Sans Arabic";font-weight:400;font-display:swap;src:url(fonts/plex-Regular.woff) format("woff")}
+@font-face{font-family:"IBM Plex Sans Arabic";font-weight:500;font-display:swap;src:url(fonts/plex-Medium.woff) format("woff")}
+@font-face{font-family:"IBM Plex Sans Arabic";font-weight:700;font-display:swap;src:url(fonts/plex-Bold.woff) format("woff")}
+@font-face{font-family:Amiri;font-weight:700;font-display:swap;src:url(fonts/amiri-Bold.woff) format("woff")}
 :root{
   --ink:#1f2d33; --muted:#66757b; --line:#dde4e6; --bg:#f6f4ee; --card:#fff;
   --teal:#1f4e5f; --teal2:#2c6a7d; --gold:#b8901c; --gold-bg:#fbf4dc;
@@ -59,7 +63,9 @@ nav a.on,nav a:hover{background:rgba(255,255,255,.14);color:#fff}
   #tabbar .on{color:var(--teal);font-weight:700}
   #tabbar .on svg{stroke-width:2.3}
   #moresheet.open{display:block;position:fixed;inset:0;z-index:30;background:rgba(20,40,48,.35)}
-  #moresheet .sheet{position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:18px 18px 0 0;padding:10px 14px calc(14px + env(safe-area-inset-bottom));animation:up .2s ease}
+  #moresheet .sheet{position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:18px 18px 0 0;padding:10px 14px calc(14px + env(safe-area-inset-bottom));animation:up .2s ease;touch-action:pan-x}
+  #moresheet .sheet.drag{transition:none}
+  #moresheet .sheet.back{transition:transform .2s ease}
   #moresheet .sheet a{display:block;padding:14px 8px;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none;font-size:16px}
   #moresheet .sheet a:last-child{border:0}
   #moresheet .grab{width:40px;height:4px;border-radius:2px;background:#d5dde0;margin:2px auto 6px}
@@ -184,6 +190,30 @@ footer{max-width:1000px;margin:auto;padding:0 16px 30px;color:var(--muted);font-
 .tcard.m{border-color:var(--m);background:var(--m-bg)}.tcard.f{border-color:var(--f);background:var(--f-bg)}
 .tcard.dd{border-color:#97a2a6;background:#eceeee}
 .tcard.leaf{border-style:dashed;opacity:.85}
+.tcard.bc{border-top:5px solid var(--bc)}
+.bcard.bc:before{background:var(--bc)}
+.bdot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bc);margin-inline-end:6px;vertical-align:middle}
+.fact.branch{background:color-mix(in srgb,var(--bc) 14%,#fff);color:var(--ink)}
+.fact.branch a{text-decoration:none;font-weight:600}
+.avatar.bc{box-shadow:0 0 0 4px #fff,0 0 0 7px var(--bc)}
+.hometree{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.hometree .htop{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.hometree .hsibs{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:6px 0 2px}
+.hometree .hmore{display:flex;justify-content:center;margin-top:14px}
+.hometree .hnote{font-size:12.5px;color:var(--muted);text-align:center;margin:10px 0 0}
+#a2hs{display:none;margin:18px 0;background:var(--gold-bg);border:1px solid #ecd9a0;border-radius:14px;padding:12px 14px;font-size:14.5px}
+#a2hs.show{display:block}
+#a2hs b{color:var(--teal)}
+#a2hs .row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+::view-transition-group(*){animation-duration:.32s;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+::view-transition-old(root){animation:vtout .16s ease both}
+::view-transition-new(root){animation:vtin .26s ease both}
+::view-transition-new(tkids){animation:vtkids .34s cubic-bezier(.2,.8,.2,1) both}
+::view-transition-old(tkids){animation:vtout .14s ease both}
+@keyframes vtin{from{opacity:0}}
+@keyframes vtout{to{opacity:0}}
+@keyframes vtkids{from{opacity:0;transform:translateY(26px)}}
+@media(prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
 .tcard .tn{font-weight:700;font-size:16px}
 .tcard .ts{font-size:12px;color:var(--muted);line-height:1.5}
 .tcard .tk{font-size:12.5px;color:var(--teal);margin-top:auto;padding-top:4px}
@@ -293,6 +323,8 @@ const G = {"ذكر":"m","أنثى":"f","غير معروف":"u"};
 const SYM = {"ذكر":"♂","أنثى":"♀","غير معروف":""};
 const isM = p => p.gender === "ذكر", isF = p => p.gender === "أنثى";
 const hashOf = id => "#p-" + id.replace(/\./g, "-");
+const tid = id => "#tree-" + id.replace(/\./g, "-");
+const upParent = p => (p.father && P[p.father]) ? P[p.father] : (p.mother && P[p.mother]) ? P[p.mother] : null;
 
 function lineage(p){ // الاسم مع النسب
   const parts = [p.name]; let q = p;
@@ -426,6 +458,27 @@ function descendants(id){ // كل الذرية المسجلة (بلا تكرار
 function depthOf(p){ let d = 1, q = p; while ((q.father && P[q.father]) || (q.mother && P[q.mother])) { q = P[q.father] || P[q.mother]; d++; } return d; }
 function branchGens(id){ const base = depthOf(P[id]); let m = base; descendants(id).forEach(k => m = Math.max(m, depthOf(P[k]))); return m - base + 1; }
 const DOCUMENTED = ["1.10", "1.12", "1.11", "1.9", "1.1", "1.5", "1.6", "1.4", "1.2"];
+const BCOL = {"1.10":"#2c6a7d","1.12":"#b8901c","1.11":"#5b8c3a","1.9":"#8a5a9e","1.1":"#c0603a","1.5":"#3a7f86","1.6":"#9b4d5f","1.4":"#6b7a2f","1.2":"#4f6aa8"};
+const BNEUTRAL = "#97a2a6";
+const BR_CACHE = {};
+function branchOf(id){ // ابن محمد بشير الذي ينتمي إليه الشخص (ذرية طمبل من فرع عجائب)
+  if (id in BR_CACHE) return BR_CACHE[id];
+  let q = P[id], r = null;
+  while (q) {
+    if (q.id === "0.2.1") { r = "1.4"; break; }
+    if (q.father === MAIN || (q.mother === MAIN)) { r = q.id; break; }
+    q = upParent(q);
+  }
+  return BR_CACHE[id] = r;
+}
+const bcol = id => BCOL[id] || BNEUTRAL;
+function tcardHtml(k, colored){
+  const n = k.kids.length, d = descendants(k.id).size;
+  return `<a class="tcard ${G[k.gender]} ${k.dead ? "dd" : ""} ${n ? "" : "leaf"} ${colored ? "bc" : ""}" data-id="${k.id}" ${colored ? `style="--bc:${bcol(k.id)}"` : ""} href="${n ? tid(k.id) : hashOf(k.id)}">
+      <span class="tn">${esc(nm(k))} ${symH(k)}${k.dead ? ' <span class="dead">(ر)</span>' : ""}</span>
+      ${k.spouse ? `<span class="ts">⚭ ${esc(k.spouse)}</span>` : ""}
+      <span class="tk">${n ? plural(n, "ابن واحد", "ابنان", "أبناء", "ابناً") + (d > n ? ` · ذرية ${AR(d)}` : "") + " ›" : (k.unknown ? "؟ " + esc(k.unknown) : (isF(k) ? "صفحتها ›" : "صفحته ›"))}</span></a>`;
+}
 const plural = (n, one, two, few, many) => n === 1 ? one : n === 2 ? two : n <= 10 ? `${AR(n)} ${few}` : `${AR(n)} ${many}`;
 const app = document.getElementById("app");
 function viewHome(){
@@ -437,7 +490,7 @@ function viewHome(){
   const gens = Math.max(...DATA.people.map(depthOf));
   const cards = DOCUMENTED.map(id => {
     const b = P[id], n = descendants(id).size, g = branchGens(id);
-    return `<a class="bcard" href="#tree-${id.replace(/\./g, "-")}">
+    return `<a class="bcard bc" style="--bc:${bcol(id)}" href="#tree-${id.replace(/\./g, "-")}">
       <div class="bn">فرع ${esc(b.name)}</div><div class="bs">${isF(b) ? "بنت" : "ابن"} الجد محمد بشير${b.dead ? (isF(b) ? "، رحمها الله" : "، رحمه الله") : ""}</div>
       <div class="bnum"><span><b>${AR(n)}</b>من الذرية</span><span><b>${AR(g)}</b>أجيال</span><span><b>${AR(b.kids.length)}</b>أبناء</span></div>
       <div class="bkids">${kidsOf(b).slice(0, 6).map(k => esc(k.name)).join("، ")}${b.kids.length > 6 ? "…" : ""}</div></a>`;
@@ -464,17 +517,21 @@ function viewHome(){
       <div id="heroask"></div>
       <div class="hero-links"><a href="#tree">تصفّح الشجرة</a><a href="#relation">صلة القرابة</a><a href="#stats">الإحصائيات</a></div>
     </section>
+    <h2>شجرة العائلة</h2>
+    <div class="hometree">
+      <div class="htop">${chip(P[ROOT], "hl")} <span class="cnt">الجد الأكبر</span></div>
+      <div class="hsibs">${kidsOf(P[ROOT]).map(k => chip(k, k.id === MAIN ? "hl" : "")).join("")}</div>
+      <div class="tvline"></div>
+      <div class="tgroup" style="text-align:center"><div class="tglbl">أبناء محمد بشير</div>
+        <div class="tgrid" style="text-align:start">${kidsOf(root).map(k => tcardHtml(k, true)).join("")}</div></div>
+      <p class="hnote">اضغط أي اسم لتنزل إلى أبنائه. والمؤكد أن كلتوم أم دياب وعثمان وعجائب، وتقسيم بقية الأبناء حسب الزوجات مبدئي.</p>
+      <div class="hmore"><a class="btn" href="#tree">افتح الشجرة كاملة</a></div>
+    </div>
     <h2>فروع العائلة</h2>
     <div class="bgrid">${cards}</div>
     ${others.length ? `<p class="empty" style="margin:12px 0 4px">فروع تُجمع بياناتها:</p>
       <div class="chips">${others.map(k => chip(k)).join("")}</div>` : ""}
-    <h2>الجد محمد بشير وأبناؤه</h2>
-    <div class="panel">
-      <div style="margin-bottom:8px">${chip(root, "hl")} <span class="cnt">ابن الجد الأكبر بشير، وشقيقه <a href="${hashOf("0.2")}">طمبل</a></span></div>
-      ${Object.entries(groups).map(([g, ks]) => `<div class="grouplbl">${esc(g)}${g.startsWith("الزوجة") && !g.includes("(") ? " (الاسم غير معروف)" : ""}</div>
-        <div class="chips">${ks.map(k => chip(k, documented.has(k.id) ? "hl" : "")).join("")}</div>`).join("")}
-      <p class="empty" style="margin:12px 0 0">المحدد بإطار ذهبي فرعه موثّق. تقسيم الأبناء حسب الزوجات مبدئي، والمؤكد أن كلتوم أم دياب وعثمان وعجائب.</p>
-    </div>
+    <div id="a2hs"></div>
     <h2>الكتاب والتصحيحات</h2>
     <div class="chips">
       <a class="btn" href="${DATA.pdf}" download="${esc(DATA.pdfName)}">تحميل كتاب العائلة PDF</a>
@@ -517,6 +574,8 @@ function viewPerson(id){
   // تجميع الأبناء حسب الزوجة
   const kg = {}; kids.forEach(k => (kg[k.group || ""] ||= []).push(k));
   const facts = [];
+  const br = branchOf(p.id);
+  if (br && br !== p.id) facts.push(`<span class="fact branch" style="--bc:${bcol(br)}"><span class="bdot"></span><a href="${tid(br)}">فرع ${esc(P[br].name)}</a></span>`);
   if (p.dead) facts.push(`<span class="fact">${isF(p)?"متوفاة":"متوفى"}، ${isF(p)?"رحمها":"رحمه"} الله</span>`);
   if (p.spouse) facts.push(`<span class="fact">⚭ ${esc(p.spouse)}</span>`);
   if (p.notes) facts.push(`<span class="fact">${esc(p.notes)}</span>`);
@@ -533,7 +592,7 @@ function viewPerson(id){
   app.innerHTML = `
     <nav class="crumbs" aria-label="النسب">${anc.map(a => `<a href="${hashOf(a.id)}">${esc(a.name)}</a> ‹`).join(" ")} <b aria-current="page">${esc(p.name)}</b></nav>
     <div class="panel"><div class="pcard">
-      <div class="avatar ${G[p.gender]}" aria-hidden="true">${SYM[p.gender] || "؟"}</div>
+      <div class="avatar ${G[p.gender]} ${br ? "bc" : ""}" ${br ? `style="--bc:${bcol(br)}"` : ""} aria-hidden="true">${SYM[p.gender] || "؟"}</div>
       <div style="flex:1;min-width:220px">
         <h1 class="pname" tabindex="-1" id="ptitle">${esc(nm(p))}${deadMark(p, true)}</h1>
         <div class="full">${esc(shortName(p, 8))}</div>
@@ -563,27 +622,19 @@ function viewPerson(id){
 }
 
 // ---------- الشجرة التفاعلية: الشخص المختار رأسٌ وتحته أبناؤه
-const upParent = p => (p.father && P[p.father]) ? P[p.father] : (p.mother && P[p.mother]) ? P[p.mother] : null;
 function upChain(p){ const out = []; let q = upParent(p); while (q) { out.unshift(q); q = upParent(q); } return out; }
-const tid = id => "#tree-" + id.replace(/\./g, "-");
 function viewTree(at){
   at = at && P[at] ? at : ROOT;
   const h = P[at], kids = kidsOf(h), par = upParent(h), nd = descendants(at).size;
   const kg = {}; kids.forEach(k => (kg[k.group || ""] ||= []).push(k));
-  const card = k => {
-    const n = k.kids.length, d = descendants(k.id).size;
-    return `<a class="tcard ${G[k.gender]} ${k.dead ? "dd" : ""} ${n ? "" : "leaf"}" href="${n ? tid(k.id) : hashOf(k.id)}">
-      <span class="tn">${esc(nm(k))} ${symH(k)}${k.dead ? ' <span class="dead">(ر)</span>' : ""}</span>
-      ${k.spouse ? `<span class="ts">⚭ ${esc(k.spouse)}</span>` : ""}
-      <span class="tk">${n ? plural(n, "ابن واحد", "ابنان", "أبناء", "ابناً") + (d > n ? ` · ذرية ${AR(d)}` : "") + " ›" : (k.unknown ? "؟ " + esc(k.unknown) : (isF(k) ? "صفحتها ›" : "صفحته ›"))}</span></a>`;
-  };
+  const card = k => tcardHtml(k, at === MAIN);
   const grpLbl = g => g + (g.startsWith("الزوجة") && !g.includes("(") && !g.includes(":") && at === MAIN ? " (الاسم غير معروف)" : "");
   const path = upChain(h);
   app.innerHTML = `<h1>الشجرة</h1>
     <p class="lead">اضغط على أي اسم لتنزل إلى أبنائه، وعلى الأسماء في الأعلى لتصعد. <a href="#list-${at.replace(/\./g, "-")}" style="color:var(--teal2)">عرض كقائمة</a></p>
     <div class="tview">
       ${path.length ? `<nav class="tpath" aria-label="المسار">${path.map(a => `<a href="${tid(a.id)}">${esc(a.name)}</a>`).join(" ‹ ")} ‹ <b>${esc(h.name)}</b></nav>` : ""}
-      <div class="thead ${G[h.gender]} ${h.dead ? "dd" : ""}">
+      <div class="thead ${G[h.gender]} ${h.dead ? "dd" : ""}" data-id="${at}">
         <div class="thn">${esc(nm(h))} ${symH(h)}${h.dead ? ' <span class="dead">(ر)</span>' : ""}</div>
         <div class="ths">${at === ROOT ? "الجد الأكبر" : esc(shortName(h, 6))}</div>
         ${h.spouse ? `<div class="ths">⚭ ${esc(h.spouse)}</div>` : ""}
@@ -591,7 +642,7 @@ function viewTree(at){
         <div class="chips"><a class="btn ghost sm" href="${hashOf(at)}">${isF(h) ? "صفحتها" : "صفحته"} الكاملة</a>
           ${par ? `<a class="btn ghost sm" href="${tid(par.id)}">↑ ${esc(par.name)}</a>` : ""}</div>
       </div>
-      ${kids.length ? `<div class="tvline"></div>` + Object.entries(kg).map(([g, ks]) => `<div class="tgroup">${g ? `<div class="tglbl">${esc(grpLbl(g))}</div>` : ""}<div class="tgrid">${ks.map(card).join("")}</div></div>`).join("") : ""}
+      ${kids.length ? `<div class="tkids"><div class="tvline"></div>` + Object.entries(kg).map(([g, ks]) => `<div class="tgroup">${g ? `<div class="tglbl">${esc(grpLbl(g))}</div>` : ""}<div class="tgrid">${ks.map(card).join("")}</div></div>`).join("") + `</div>` : ""}
       ${h.unknown ? `<div class="chips" style="justify-content:center;margin-top:12px">${unk(h.unknown)}</div>` : ""}
     </div>`;
 }
@@ -935,7 +986,29 @@ function renderMeBar(view){
 
 const SCROLL = {}, STACK = [];
 let CUR_H = null;
+// انتقال الشجرة: البطاقة المضغوطة تصير رأساً وينزل أبناؤه من تحته، والعكس عند الصعود
+const treeId = x => x === "tree" ? ROOT : x.slice(5).replace(/-/g, ".");
+const isTreeH = x => x === "tree" || (x || "").startsWith("tree-");
+function isAncOf(a, d){ let q = P[d]; while (q) { if (q.id === a) return true; q = upParent(q); } return false; }
+function childOnPath(top, low){ let q = P[low]; while (q && upParent(q) && upParent(q).id !== top) q = upParent(q); return q && upParent(q) && upParent(q).id === top ? q.id : null; }
 function route(){
+  const h = location.hash.slice(1);
+  const canVT = document.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!(canVT && isTreeH(h) && isTreeH(CUR_H) && document.body.dataset.view === "tree")) return renderRoute(false);
+  const oldAt = treeId(CUR_H), newAt = treeId(h);
+  let oldSel = null, newSel = null;
+  if (P[oldAt] && P[newAt] && oldAt !== newAt) {
+    if (isAncOf(oldAt, newAt)) { oldSel = `.tcard[data-id="${childOnPath(oldAt, newAt)}"]`; newSel = ".thead"; }
+    else if (isAncOf(newAt, oldAt)) { oldSel = ".thead"; newSel = `.tcard[data-id="${childOnPath(newAt, oldAt)}"]`; }
+  }
+  const name = () => { const k = app.querySelector(".tkids"); if (k) k.style.viewTransitionName = "tkids"; };
+  const focus = sel => { const e = sel && app.querySelector(sel); if (e) e.style.viewTransitionName = "tfocus"; };
+  const clear = () => app.querySelectorAll(".tkids,.tcard,.thead").forEach(e => e.style.viewTransitionName = "");
+  clear(); name(); focus(oldSel);
+  const t = document.startViewTransition(() => { renderRoute(true); name(); focus(newSel); });
+  t.finished.then(clear, clear);
+}
+function renderRoute(vt){
   const h = location.hash.slice(1);
   if (CUR_H !== null) SCROLL[CUR_H] = window.scrollY;
   const back = STACK.length > 1 && STACK[STACK.length - 2] === h;
@@ -950,13 +1023,13 @@ function route(){
   else if (h === "stats") { v = "stats"; viewStats(); }
   else if (h === "relation") { v = "relation"; viewRelation(); }
   else if (h === "fix") { v = "fix"; viewFix(); }
-  else viewHome();
+  else { viewHome(); showA2HS(); }
   renderMeBar(v);
   document.getElementById("topsearch").style.display = v === "home" ? "none" : "";
   document.body.dataset.view = v;
   document.querySelectorAll("#nav a, #tabbar a").forEach(a => { a.classList.toggle("on", a.dataset.v === v); a.toggleAttribute("aria-current", a.dataset.v === v); });
   document.getElementById("tabmore").classList.toggle("on", v === "stats" || v === "fix");
-  app.classList.remove("fade"); void app.offsetWidth; app.classList.add("fade");
+  app.classList.remove("fade"); if (!vt) { void app.offsetWidth; app.classList.add("fade"); }
   const h1 = app.querySelector("h1");
   document.title = (h1 && v !== "home" ? h1.textContent.replace(/رحم(ه|ها) الله/,"").trim() + " · " : "") + "عائلة البشيراب";
   if (FIRST) FIRST = false; else if (h1) { h1.setAttribute("tabindex", "-1"); h1.focus({preventScroll: true}); }
@@ -973,6 +1046,31 @@ document.getElementById("moresheet").onclick = e => { if (e.target.id === "mores
 document.getElementById("moreme").onclick = e => { e.preventDefault(); document.getElementById("moresheet").classList.remove("open");
   if (location.hash) location.hash = ""; CHOOSING = true; setTimeout(() => { renderMeBar("home"); window.scrollTo(0, 0); const i = document.getElementById("mein"); if (i) i.focus(); }, 40); };
 let FIRST = true;
+// سحب قائمة «المزيد» للأسفل يغلقها
+(() => { const sh = document.querySelector("#moresheet .sheet"); let y0 = null, dy = 0;
+  sh.addEventListener("touchstart", e => { y0 = e.touches[0].clientY; dy = 0; sh.classList.add("drag"); sh.classList.remove("back"); }, {passive: true});
+  sh.addEventListener("touchmove", e => { if (y0 === null) return; dy = Math.max(0, e.touches[0].clientY - y0); sh.style.transform = dy ? `translateY(${dy}px)` : ""; }, {passive: true});
+  sh.addEventListener("touchend", () => { sh.classList.remove("drag"); sh.classList.add("back"); sh.style.transform = "";
+    if (dy > 70) document.getElementById("moresheet").classList.remove("open"); y0 = null; dy = 0; });
+})();
+// «أضِف الموقع إلى شاشتك» مرة واحدة على الجوال
+let A2HS_EVT = null;
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); A2HS_EVT = e; showA2HS(); });
+function showA2HS(){
+  const box = document.getElementById("a2hs"); if (!box) return;
+  let seen = false; try { seen = localStorage.getItem("bashirab_a2hs") === "1"; } catch (e) {}
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (seen || standalone || !matchMedia("(max-width:700px)").matches || (!ios && !A2HS_EVT)) return;
+  box.innerHTML = `<b>أضِف الموقع إلى شاشة جوالك</b>
+    <div>${ios ? "اضغط زر المشاركة في المتصفح، ثم «إضافة إلى الشاشة الرئيسية»، فيُفتح الموقع من أيقونته كأنه تطبيق." : "فيُفتح من أيقونته كأنه تطبيق، بلا شريط المتصفح."}</div>
+    <div class="row">${ios ? "" : `<button type="button" class="btn" id="a2hsgo">أضِفه الآن</button>`}<button type="button" class="btn ghost" id="a2hsno">${ios ? "حسناً" : "لا، شكراً"}</button></div>`;
+  box.classList.add("show");
+  const close = () => { box.classList.remove("show"); try { localStorage.setItem("bashirab_a2hs", "1"); } catch (e) {} };
+  document.getElementById("a2hsno").onclick = close;
+  const go = document.getElementById("a2hsgo");
+  if (go) go.onclick = async () => { A2HS_EVT.prompt(); try { await A2HS_EVT.userChoice; } catch (e) {} A2HS_EVT = null; close(); };
+}
 document.getElementById("foot").innerHTML = `عائلة البشيراب · <a href="#" onclick="CHOOSING=true;setTimeout(()=>{renderMeBar('home');document.getElementById('mein').focus()},30)">اعرف صلتك بالعائلة</a> · <a href="#fix">أرسل تصحيحاً أو إضافة</a> · <a href="${DATA.pdf}" download="${esc(DATA.pdfName)}">تحميل الكتاب PDF</a>`;
 addEventListener("hashchange", route);
 route();
