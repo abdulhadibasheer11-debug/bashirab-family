@@ -15,10 +15,13 @@ def walk(pid):
     for c in children(pid):
         if c["id"] not in seen and ready(c):
             walk(c["id"])
+order.append(by_id["0"]); seen.add("0")
 order.append(by_id["1"]); seen.add("1")
 rk = children("1")
 for c in [c for c in rk if c["id"] != "1.10"] + [by_id["1.10"]]:
     walk(c["id"])
+for c in children("0"):          # طمبل وأحمد وحاكم، بعد ذرية محمد بشير
+    if c["id"] not in seen: walk(c["id"])
 assert len(order) == len(people)
 
 wb = Workbook()

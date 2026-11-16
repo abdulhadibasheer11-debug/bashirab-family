@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>عائلة البشيراب</title>
-<meta name="description" content="شجرة عائلة البشيراب، ذرية الجد محمد بشير: ابحث عن اسمك، واعرف صلة القرابة بين أي شخصين، وحمّل كتاب العائلة.">
+<meta name="description" content="شجرة عائلة البشيراب، ذرية الجد بشير: ابحث عن اسمك، واعرف صلة القرابة بين أي شخصين، وحمّل كتاب العائلة.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ar_AR">
 <meta property="og:site_name" content="عائلة البشيراب">
 <meta property="og:title" content="شجرة عائلة البشيراب">
-<meta property="og:description" content="ذرية الجد محمد بشير: ابحث عن اسمك، واعرف صلة القرابة بين أي شخصين، وحمّل كتاب العائلة.">
+<meta property="og:description" content="ذرية الجد بشير: ابحث عن اسمك، واعرف صلة القرابة بين أي شخصين، وحمّل كتاب العائلة.">
 <meta property="og:url" content="https://abdulhadibasheer11-debug.github.io/bashirab-family/">
 <meta property="og:image" content="https://abdulhadibasheer11-debug.github.io/bashirab-family/og.png">
 <meta property="og:image:width" content="1200">
@@ -285,7 +285,7 @@ footer a{color:var(--teal2)}
 <script>
 const DATA = __DATA__;
 const P = {}; DATA.people.forEach(p => P[p.id] = p);
-const ROOT = "1";
+const ROOT = "0", MAIN = "1";   // ROOT: الجد الأكبر بشير · MAIN: ابنه محمد بشير
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const AR = n => String(n).replace(/\d/g, d => "٠١٢٣٤٥٦٧٨٩"[d]);
 const G = {"ذكر":"m","أنثى":"f","غير معروف":"u"};
@@ -424,11 +424,11 @@ function descendants(id){ // كل الذرية المسجلة (بلا تكرار
 }
 function depthOf(p){ let d = 1, q = p; while ((q.father && P[q.father]) || (q.mother && P[q.mother])) { q = P[q.father] || P[q.mother]; d++; } return d; }
 function branchGens(id){ const base = depthOf(P[id]); let m = base; descendants(id).forEach(k => m = Math.max(m, depthOf(P[k]))); return m - base + 1; }
-const DOCUMENTED = ["1.10", "1.12", "1.11", "1.9", "1.1", "1.5", "1.6"];
+const DOCUMENTED = ["1.10", "1.12", "1.11", "1.9", "1.1", "1.5", "1.6", "1.4", "1.2"];
 const plural = (n, one, two, few, many) => n === 1 ? one : n === 2 ? two : n <= 10 ? `${AR(n)} ${few}` : `${AR(n)} ${many}`;
 const app = document.getElementById("app");
 function viewHome(){
-  const root = P[ROOT];
+  const root = P[MAIN];
   const groups = {};
   kidsOf(root).forEach(k => (groups[k.group || ""] ||= []).push(k));
   const documented = new Set(DOCUMENTED);
@@ -448,7 +448,7 @@ function viewHome(){
       <div class="hero-in">
         <div>
           <h1 class="hero-t">عائلة البشيراب</h1>
-          <p class="hero-sub">ذرية الجد محمد بشير · ${AR(DATA.people.length)} فرداً في ${AR(gens)} أجيال</p>
+          <p class="hero-sub">ذرية الجد بشير · ${AR(DATA.people.length)} فرداً في ${AR(gens)} أجيال</p>
           ${me ? `<p class="hero-hi">أهلاً بك يا <a href="${hashOf(me)}">${esc(P[me].name)}</a></p>` : ""}
         </div>
         <svg class="hero-art" viewBox="0 0 380 300" aria-hidden="true">
@@ -469,7 +469,7 @@ function viewHome(){
       <div class="chips">${others.map(k => chip(k)).join("")}</div>` : ""}
     <h2>الجد محمد بشير وأبناؤه</h2>
     <div class="panel">
-      <div style="margin-bottom:8px">${chip(root, "hl")} <span class="cnt">الجد الأكبر</span></div>
+      <div style="margin-bottom:8px">${chip(root, "hl")} <span class="cnt">ابن الجد الأكبر بشير، وشقيقه <a href="${hashOf("0.2")}">طمبل</a></span></div>
       ${Object.entries(groups).map(([g, ks]) => `<div class="grouplbl">${esc(g)}${g.startsWith("الزوجة") && !g.includes("(") ? " (الاسم غير معروف)" : ""}</div>
         <div class="chips">${ks.map(k => chip(k, documented.has(k.id) ? "hl" : "")).join("")}</div>`).join("")}
       <p class="empty" style="margin:12px 0 0">المحدد بإطار ذهبي فرعه موثّق. تقسيم الأبناء حسب الزوجات مبدئي، والمؤكد أن كلتوم أم دياب وعثمان وعجائب.</p>
@@ -522,7 +522,10 @@ function viewPerson(id){
   if (p.unknown) facts.push(`<span class="fact warn">؟ أبناء لم تُسجَّل أسماؤهم: ${esc(p.unknown)}</span>`);
   const nd = descendants(p.id).size;
   if (nd > p.kids.length) facts.push(`<span class="fact">${isF(p) ? "ذريتها" : "ذريته"} المسجلة: ${AR(nd)}</span>`);
-  if (p.group && father) facts.push(`<span class="fact">${isF(p)?"أمها":"أمه"}: ${esc(p.group)} ${isF(p)?"لأبيها":"لأبيه"}</span>`);
+  if (p.group && father && !(p.mother && P[p.mother])) {   // الأم ليست في الشجرة: نذكرها من «من أي زوجة»
+    const [w, nmW] = p.group.split(":").map(x => x.trim());
+    facts.push(`<span class="fact">${isF(p)?"أمها":"أمه"}: ${nmW ? esc(nmW) + " (" + esc(w) + ")" : esc(w) + (w.startsWith("الزوجة") ? (isF(p)?" لأبيها":" لأبيه") : "")}</span>`);
+  }
   const parentsRow = [father ? chip(father) : (p.father_txt ? `<span class="chip m">${esc(p.father_txt)} <span class="sym">♂</span></span>` : ""),
                       mother ? chip(mother) : ""].filter(Boolean).join("");
   const kidsRow = kids.map(k => chip(k)).join("") + (p.unknown ? unk(p.unknown) : "");
@@ -573,7 +576,7 @@ function viewTree(at){
       ${k.spouse ? `<span class="ts">⚭ ${esc(k.spouse)}</span>` : ""}
       <span class="tk">${n ? plural(n, "ابن واحد", "ابنان", "أبناء", "ابناً") + (d > n ? ` · ذرية ${AR(d)}` : "") + " ›" : (k.unknown ? "؟ " + esc(k.unknown) : (isF(k) ? "صفحتها ›" : "صفحته ›"))}</span></a>`;
   };
-  const grpLbl = g => g + (g.startsWith("الزوجة") && !g.includes("(") && !g.includes(":") && at === ROOT ? " (الاسم غير معروف)" : "");
+  const grpLbl = g => g + (g.startsWith("الزوجة") && !g.includes("(") && !g.includes(":") && at === MAIN ? " (الاسم غير معروف)" : "");
   const path = upChain(h);
   app.innerHTML = `<h1>الشجرة</h1>
     <p class="lead">اضغط على أي اسم لتنزل إلى أبنائه، وعلى الأسماء في الأعلى لتصعد. <a href="#list-${at.replace(/\./g, "-")}" style="color:var(--teal2)">عرض كقائمة</a></p>
@@ -634,7 +637,7 @@ function viewTreeList(at){
 
 // ---------- الإحصائيات
 function viewStats(){
-  const root = P[ROOT], rk = kidsOf(root).filter(k => k.kids.length);
+  const root = P[MAIN], rk = kidsOf(root).filter(k => k.kids.length);
   const bc = rk.map(k => [k, descendants(k.id).size]).sort((x, y) => y[1] - x[1]);
   const mx = Math.max(...bc.map(x => x[1]));
   const byGen = {}; DATA.people.forEach(p => { const d = depthOf(p); byGen[d] = (byGen[d] || 0) + 1; });
