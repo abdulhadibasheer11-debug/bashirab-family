@@ -428,7 +428,8 @@ CUR[0] = "ch4"
 def mini(pid, rows):
     return f'<div class="cell">{tree(li(node(by_id[pid], [E(by_id[pid]["notes"])] if pid == "1.15" else []), below=stack(rows)), 1.2)}</div>'
 cells = [
-  mini("1.8", chip(by_id["1.8.1"], [spouse_txt(by_id["1.8.1"]), f"أبناؤه ← صفحة {pg('dahaba')}"])),
+  mini("1.8", chip(by_id["1.8.1"], [spouse_txt(by_id["1.8.1"]), f"أبناؤه من دهابة ← صفحة {pg('dahaba')}"]) +
+              chip(by_id["1.8.1.1"], ["بنت عبد الله"])),
   mini("1.13", chip(by_id["1.13.1"], ["أبناؤها: " + "، ".join(c["name"] for c in children("1.13.1"))]) +
                chip(by_id["1.13.1.1"], ["بنت تومة", kids_summary(by_id["1.13.1.1"])]) +
                chip(by_id["1.13.1.2"], ["بنت تومة", spouse_txt(by_id["1.13.1.2"]), f"← صفحة {pg('jara')}"]) +
