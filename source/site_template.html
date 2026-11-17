@@ -1368,10 +1368,10 @@ function viewEdits(){
     const st = document.getElementById("s-st"), go = document.getElementById("s-go"), w = document.getElementById("s-who");
     if (!w.value.trim()) { st.textContent = "اكتب اسمك من فضلك."; w.focus(); return; }
     EDIT.who = w.value.trim(); EDIT.phone = document.getElementById("s-tel").value.trim(); EDIT.save();
-    const body = {_subject: `شجرة البشيراب: ${AR(ops.length)} تغييرات من ${EDIT.who}`, _template: "table",
-      "المرسل": EDIT.who, "رقم التواصل": EDIT.phone || "—"};
-    ops.forEach((o, i) => { const x = opText(o); body[`${AR(i + 1)}. ${x.k}`] = x.t; });
-    body["بيانات للتطبيق (لا تعدّلها)"] = JSON.stringify(ops);
+    // نفس صيغة نموذج «أرسل تصحيحاً» المجرَّب: الاسم والرسالة ورقم التواصل
+    const lines = ops.map((o, i) => { const x = opText(o); return `${AR(i + 1)}- ${x.k}: ${x.t}`; });
+    const body = {"الاسم": EDIT.who, "الرسالة": lines.join("\n") + "\n\n—— للتطبيق ——\n" + JSON.stringify(ops),
+      "رقم التواصل": EDIT.phone || "—", _subject: "شجرة البشيراب: تعديلات من " + EDIT.who, _template: "table"};
     go.disabled = true; st.className = "emsg"; st.textContent = "جارٍ الإرسال…";
     try {
       const r = await fetch("https://formsubmit.co/ajax/" + DATA.formTo, {method: "POST",
@@ -1386,7 +1386,13 @@ function viewEdits(){
       document.getElementById("s-again").onclick = () => { location.hash = "#tree"; location.reload(); };
       document.getElementById("s-out").onclick = () => { EDIT.on = false; EDIT.save(); location.hash = ""; location.reload(); };
       renderEditBar("edits");
-    } catch (err) { go.disabled = false; st.className = "emsg err"; st.textContent = "لم تُرسل. تأكد من الاتصال بالإنترنت وحاول مرة أخرى."; }
+    } catch (err) {
+      go.disabled = false; st.className = "emsg err";
+      st.textContent = "لم تُرسل. تأكد من الاتصال بالإنترنت وحاول مرة أخرى، أو أرسلها عبر واتساب.";
+      if (!document.getElementById("s-wa")) { const a = document.createElement("a"); a.id = "s-wa"; a.className = "btn ghost"; a.target = "_blank";
+        a.textContent = "أرسلها عبر واتساب"; a.href = "https://wa.me/?text=" + encodeURIComponent("تعديلات شجرة البشيراب من " + EDIT.who + ":\n" + lines.join("\n"));
+        st.after(a); }
+    }
   };
 }
 EDIT.load();
