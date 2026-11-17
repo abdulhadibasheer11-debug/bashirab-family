@@ -825,7 +825,7 @@ function viewRelation(){
     if (!REL.b) { live.textContent = `اخترت ${shortName(p, 4)}. اكتب الآن اسم الشخص الثاني.`; document.getElementById("inb").focus(); } });
   wireSearch(document.getElementById("pb"), (p, inp) => { inp.value = ""; REL.b = p.id; drawRel();
     if (!REL.a) { live.textContent = `اخترت ${shortName(p, 4)}. اكتب الآن اسم الشخص الأول.`; document.getElementById("ina").focus(); } });
-  if (REL.a && !REL.b) setTimeout(() => { live.textContent = `الشخص الأول: ${shortName(P[REL.a], 4)}. اكتب اسم الشخص الثاني.`; document.getElementById("inb").focus(); }, 50);
+  if (REL.a && !REL.b) setTimeout(() => { const ib = document.getElementById("inb"); if (!ib) return; live.textContent = `الشخص الأول: ${shortName(P[REL.a], 4)}. اكتب اسم الشخص الثاني.`; ib.focus(); }, 50);
   drawRel();
 }
 function drawRel(){
