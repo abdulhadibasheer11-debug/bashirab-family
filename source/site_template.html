@@ -359,6 +359,9 @@ body.hasfab #foot{padding-bottom:90px}
 .ares{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-top:12px;background:#fff}
 .ares h3{margin:0 0 6px}
 section[tabindex="-1"]:focus{outline:none}
+.adminonly header,.adminonly #foot,.adminonly #tabbar,.adminonly #moresheet,.adminonly #mebar,.adminonly #editbar,.adminonly #efab,.adminonly #a2hs{display:none!important}
+.adminonly body{padding-bottom:0!important}
+.adminonly main{padding-top:20px}
 </style>
 </head>
 <body>
@@ -398,6 +401,8 @@ section[tabindex="-1"]:focus{outline:none}
 
 <script>
 const DATA = __DATA__;
+const ADMIN_ONLY = !!window.ADMIN_ONLY;   // ملف admin.html: لوحة التحكم وحدها بلا واجهة الموقع
+if (ADMIN_ONLY) document.documentElement.classList.add("adminonly");
 const P = {}; DATA.people.forEach(p => P[p.id] = p);
 const ROOT = "0", MAIN = "1";   // ROOT: الجد الأكبر بشير · MAIN: ابنه محمد بشير
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -1099,6 +1104,8 @@ function route(){
 }
 function renderRoute(vt){
   const h = location.hash.slice(1);
+  if (ADMIN_ONLY) { viewAdmin(); return; }
+  if (h === "admin") { location.replace("admin.html"); return; }
   if (CUR_H !== null) SCROLL[CUR_H] = window.scrollY;
   const back = STACK.length > 1 && STACK[STACK.length - 2] === h;
   if (back) STACK.pop(); else if (STACK[STACK.length - 1] !== h) STACK.push(h);
@@ -1491,6 +1498,7 @@ if (EDIT.on) EDIT.ops.forEach(applyOp);
 const CNT = "https://api.counterapi.dev/v1/bashirab-family-ab11/";
 (function countVisit(){
   try {
+    if (ADMIN_ONLY) { localStorage.setItem("bashirab_admin", "1"); return; }
     if (location.protocol !== "https:" || localStorage.getItem("bashirab_admin") === "1") return;
     const today = new Date().toISOString().slice(0, 10);
     if (!localStorage.getItem("bashirab_dev")) { localStorage.setItem("bashirab_dev", today); fetch(CNT + "devices/up").catch(() => {}); }
@@ -1515,6 +1523,7 @@ function listOf(j){
 
 // ---------- صفحة الآدمن: ‎#admin‎ (لا تظهر في أي قائمة)
 function viewAdmin(){
+  const SH = x => ADMIN_ONLY ? "index.html" + x : x, TG = ADMIN_ONLY ? ' target="_blank"' : "";
   try { localStorage.setItem("bashirab_admin", "1"); } catch (e) {}
   const all = DATA.people.filter(p => !p.isNew);
   const n = all.length, dead = all.filter(p => p.dead).length, m = all.filter(p => p.gender === "ذكر").length, f = all.filter(p => p.gender === "أنثى").length;
@@ -1532,10 +1541,11 @@ function viewAdmin(){
   const SP = /^(احمد|اسماء|ابراهيم|اسامة|اسامه|امنة|امنه|امين|ايمن|اسيا|اخلاص|اقبال|اكرام|امير|انور|ايمان|الاء|امل|امال|انس|اسراء|اية|ابتسام|ادريس|اسماعيل|ادم)$|^(فاطمه|عائشه|عايشه|آمنه|خديجه|رقيه|سميره|منيره|حليمه|زكيه|سعيده|نفيسه)$/;
   const spell = all.filter(p => SP.test(p.name));
   const tmp = all.filter(p => (p.notes || "").includes("مؤقت"));
-  const L = (p, t) => `<a href="${hashOf(p.id)}">${esc(t || shortName(p, 5))}</a> <a class="sm" href="${eid(p.id)}" aria-label="تعديل ${esc(p.name)}">✎ تعديل</a>`;
+  const L = (p, t) => `<a href="${SH(hashOf(p.id))}"${TG}>${esc(t || shortName(p, 5))}</a> <a class="sm" href="${SH(eid(p.id))}"${TG} aria-label="تعديل ${esc(p.name)}">✎ تعديل</a>`;
   const T = (cap, head, rows) => `<div class="tblw"><table class="atbl"><caption>${cap}</caption><thead><tr>${head.map(h => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
-  app.innerHTML = `<h1>لوحة صاحب الموقع</h1>
-    <p class="lead">هذه الصفحة لا تظهر في أي قائمة. احفظ رابطها عندك. زياراتك من هذا الجهاز لا تُحسب في عدّاد الزوار.</p>
+  document.title = "لوحة التحكم · عائلة البشيراب";
+  app.innerHTML = `<h1>لوحة التحكم</h1>
+    <p class="lead">لعائلة البشيراب. هذه الصفحة لا تظهر في الموقع، فاحفظ رابطها عندك. زياراتك من هذا الجهاز لا تُحسب في عدّاد الزوار.${ADMIN_ONLY ? ` روابط الأسماء تفتح الموقع في نافذة جديدة. <a href="index.html" target="_blank">فتح الموقع</a>` : ""}</p>
     <nav class="panel" aria-label="أقسام اللوحة"><ul class="alinks">
       <li><a href="#a-vis">الزوار</a></li><li><a href="#a-num">الأرقام</a></li><li><a href="#a-miss">ما ينقص الشجرة</a></li>
       <li><a href="#a-find">البحث بالرقم والاسم</a></li><li><a href="#a-log">سجل الإضافات</a></li><li><a href="#a-files">الملفات</a></li></ul></nav>
@@ -1554,7 +1564,7 @@ function viewAdmin(){
       </ul>
       ${T("عدد الأفراد في كل جيل", ["الجيل", "العدد"], Object.keys(byGen).sort((a, b) => a - b).map(g => `<tr><th scope="row">${AR(+g)}</th><td>${AR(byGen[g])}</td></tr>`))}
       ${T(`الفروع، من الأكبر إلى الأصغر${base.date ? ` · الزيادة منذ ${esc(base.date)}` : ""}`, ["الفرع", "العدد مع رأس الفرع", "الزيادة"],
-        brRows.map(r => `<tr><th scope="row"><a href="${tid(r.b.id)}">${esc(nm(r.b))}</a></th><td>${AR(r.c)}</td><td>${r.d ? (r.d > 0 ? "+" : "") + AR(r.d) : "—"}</td></tr>`))}
+        brRows.map(r => `<tr><th scope="row"><a href="${SH(tid(r.b.id))}"${TG}>${esc(nm(r.b))}</a></th><td>${AR(r.c)}</td><td>${r.d ? (r.d > 0 ? "+" : "") + AR(r.d) : "—"}</td></tr>`))}
       <p class="muted">من كان أبوه من فرع وأمه من فرع آخر يُحسب في الفرعين.</p></section>
 
     <section class="panel" id="a-miss" tabindex="-1"><h2>ما ينقص الشجرة</h2>
@@ -1595,7 +1605,7 @@ function viewAdmin(){
       <li>${isF(p) ? "أنثى" : "ذكر"}${p.spouse ? ` · ${isF(p) ? "زوجها" : "زوجته"}: ${esc(p.spouse)}` : ""}</li>
       ${mo ? `<li>${isF(p) ? "أمها" : "أمه"}: ${esc(shortName(mo, 4))} <span dir="ltr">(${esc(mo.id)})</span></li>` : p.group ? `<li>${p.group.startsWith("الأم:") ? (isF(p) ? "أمها: " : "أمه: ") + esc(p.group.replace(/^الأم:\s*/, "")) : "من: " + esc(p.group)}</li>` : ""}
       <li>الأبناء المسجلون: ${AR(p.kids.length)} · الذرية: ${AR(descendants(p.id).size)}</li>
-      <li><a href="${hashOf(p.id)}">صفحته</a> · <a href="${tid(p.id)}">شجرته</a> · <a href="${eid(p.id)}">تعديله</a></li></ul></div>`;
+      <li><a href="${SH(hashOf(p.id))}"${TG}>صفحته</a> · <a href="${SH(tid(p.id))}"${TG}>شجرته</a> · <a href="${SH(eid(p.id))}"${TG}>تعديله</a></li></ul></div>`;
   };
   const idIn = document.getElementById("a-id");
   const go = () => { const v = idIn.value.trim().replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[٫,،\s]+/g, "."); if (v) show(P[v]); };
