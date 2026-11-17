@@ -278,6 +278,39 @@ h1.pname{font-family:inherit;color:var(--ink)}
 .fstatus{margin:0;color:#8a2f2f;min-height:1em}
 .fok{font-size:17px;color:var(--teal);font-weight:700;margin:0}
 footer a{color:var(--teal2)}
+
+/* ---------- وضع التعديل (لا يظهر إلا لمن فتح رابط #edit) */
+#editbar .ewrap{max-width:1000px;margin:auto;padding:9px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:15px}
+#editbar .eline{background:#e7f1ec;border-bottom:1px solid #b9d6c6;color:var(--ink)}
+#editbar b{color:#1d5c3f}
+#editbar .btn{padding:7px 14px}
+.editp{border:1.5px solid #8fbfa6;background:#f4faf6}
+.editp h2{margin:0 0 10px;font-size:19px}
+.ebtns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ebtns button{font:inherit;font-size:16px;padding:13px 10px;border-radius:12px;border:1px solid #9cc5ae;background:#fff;color:var(--teal);cursor:pointer;font-weight:500}
+.ebtns button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.ebtns button.danger{color:#9b2c2c;border-color:#e3b4b4}
+.eform{margin-top:14px;display:flex;flex-direction:column;gap:14px}
+.eform:empty{display:none}
+.eform .fld input,.eform .fld select,.eform .fld textarea{font-size:17px;padding:11px 13px}
+.eform .row3,.row3{display:flex;gap:10px;flex-wrap:wrap}
+.eform .row3 .btn{padding:11px 22px;font-size:16px}
+.seg{display:flex;gap:8px}
+.seg label{flex:1;text-align:center;border:1px solid #b9c6ca;border-radius:10px;padding:10px;font-size:16px;cursor:pointer;background:#fff;margin:0;position:relative}
+.seg input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--teal);color:#fff;border-color:var(--teal)}
+.chk{display:flex;gap:10px;align-items:center;font-size:16px;cursor:pointer}
+.chk input{width:22px;height:22px}
+.emsg{margin:0;font-size:15px;color:#1d5c3f;font-weight:700;min-height:1em}
+.emsg.err{color:#8a2f2f}
+.tag{display:inline-block;font-size:11.5px;border-radius:6px;padding:1px 6px;margin-inline-start:4px;vertical-align:middle;font-weight:700}
+.tag.new{background:#d8efe2;color:#1d5c3f}.tag.ed{background:#fbf0cf;color:#7a5b00}.tag.del{background:#f6dcdc;color:#8a2f2f}
+.chip.addk{border:1.5px dashed #6aa888;color:#1d5c3f;background:#f4faf6;cursor:pointer;font:inherit}
+.oplist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.oplist li{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;gap:8px;align-items:flex-start;font-size:15.5px;flex-wrap:wrap}
+.oplist .ot{flex:1;min-width:200px;line-height:1.7}
+.oplist .ok{margin-inline-start:0;margin-inline-end:6px;font-size:12.5px;padding:1px 7px}
+@media(max-width:700px){#editbar .ewrap{font-size:14px}.ebtns button{font-size:15px}}
 </style>
 </head>
 <body>
@@ -294,6 +327,7 @@ footer a{color:var(--teal2)}
   <div class="searchbox" id="topsearch"><input type="search" placeholder="ابحث عن اسم…" aria-label="ابحث عن اسم في العائلة" autocomplete="off"><div class="results"></div></div>
 </div></header>
 <div id="live" class="sr-only" aria-live="polite"></div>
+<div id="editbar"></div>
 <div id="mebar"></div>
 <main id="app" tabindex="-1"></main>
 <footer id="foot"></footer>
@@ -347,7 +381,7 @@ const symH = p => `<span class="sym" aria-hidden="true">${SYM[p.gender]}</span>`
 // الاسم مع اللقب (بالرطانة) — لصاحبه فقط، ولا يدخل في نسب أبنائه
 const nm = p => p.name + (p.alias ? ` «${p.alias}»` : "");
 function chip(p, extra="", label){
-  return `<a class="chip ${G[p.gender]} ${p.dead ? "dd" : ""} ${extra}" href="${hashOf(p.id)}">${esc(label || nm(p))} ${symH(p)}${deadMark(p)}</a>`;
+  return `<a class="chip ${G[p.gender]} ${p.dead ? "dd" : ""} ${extra}" href="${hashOf(p.id)}">${esc(label || nm(p))} ${symH(p)}${deadMark(p)}${editTag(p)}</a>`;
 }
 const unk = t => `<span class="chip dash">؟ ${esc(t)}</span>`;
 
@@ -1023,8 +1057,11 @@ function renderRoute(vt){
   else if (h === "stats") { v = "stats"; viewStats(); }
   else if (h === "relation") { v = "relation"; viewRelation(); }
   else if (h === "fix") { v = "fix"; viewFix(); }
+  else if (h === "edit") { v = "edit"; viewEditStart(); }
+  else if (h === "edits") { v = "edits"; viewEdits(); }
   else { viewHome(); showA2HS(); }
-  renderMeBar(v);
+  renderMeBar(v); renderEditBar(v);
+  if (v === "person" && EDIT.on) editPersonUI(h.slice(2).replace(/-/g, "."));
   document.getElementById("topsearch").style.display = v === "home" ? "none" : "";
   document.body.dataset.view = v;
   document.querySelectorAll("#nav a, #tabbar a").forEach(a => { a.classList.toggle("on", a.dataset.v === v); a.toggleAttribute("aria-current", a.dataset.v === v); });
@@ -1072,6 +1109,289 @@ function showA2HS(){
   if (go) go.onclick = async () => { A2HS_EVT.prompt(); try { await A2HS_EVT.userChoice; } catch (e) {} A2HS_EVT = null; close(); };
 }
 document.getElementById("foot").innerHTML = `عائلة البشيراب · <a href="#" onclick="CHOOSING=true;setTimeout(()=>{renderMeBar('home');document.getElementById('mein').focus()},30)">اعرف صلتك بالعائلة</a> · <a href="#fix">أرسل تصحيحاً أو إضافة</a> · <a href="${DATA.pdf}" download="${esc(DATA.pdfName)}">تحميل الكتاب PDF</a>`;
+// ---------- وضع التعديل: يُفتح برابط ‎#edit‎ فقط، ولا يظهر منه شيء لعامة الزوار.
+// التعديلات تُحفظ في جهاز المعدِّل وتظهر له فوراً، ثم يرسلها فتصل إلى صاحب الموقع ليراجعها قبل أن تُعتمد.
+const ORIG = {}; DATA.people.forEach(p => ORIG[p.id] = JSON.parse(JSON.stringify(p)));
+const EFIELDS = ["name", "alias", "gender", "spouse", "dead", "notes"];
+const EDIT = {
+  on: false, ops: [], who: "", phone: "",
+  load(){ try { this.on = localStorage.getItem("bashirab_edit") === "1";
+    this.ops = JSON.parse(localStorage.getItem("bashirab_ops") || "[]");
+    this.who = localStorage.getItem("bashirab_editor") || ""; this.phone = localStorage.getItem("bashirab_editor_tel") || ""; } catch (e) {} },
+  save(){ try { localStorage.setItem("bashirab_edit", this.on ? "1" : "0");
+    localStorage.setItem("bashirab_ops", JSON.stringify(this.ops));
+    localStorage.setItem("bashirab_editor", this.who); localStorage.setItem("bashirab_editor_tel", this.phone); } catch (e) {} }
+};
+const ED = {open: null, msg: ""};   // النموذج المفتوح في صفحة الشخص، ورسالة آخر حفظ
+const newId = () => "n" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+const addOp = id => EDIT.ops.find(o => o.t === "add" && o.id === id);
+
+function applyOp(o){
+  if (o.t === "edit" && P[o.id]) { Object.assign(P[o.id], o.v, {edited: true}); delete SKEY[o.id]; }
+  else if (o.t === "add" && P[o.parent] && !P[o.id]) {
+    const par = P[o.parent];
+    const q = Object.assign({id: o.id, father: null, mother: null, father_txt: "", group: "", spouse: "", notes: "",
+      dead: false, unknown: "", alias: "", kids: [], isNew: true}, o.v);
+    if (isF(par)) q.mother = par.id; else q.father = par.id;
+    if (o.other) { if (isF(par)) q.father = o.other; else q.mother = o.other; }
+    P[q.id] = q; DATA.people.push(q); par.kids.push(q.id);
+  }
+  else if (o.t === "del" && P[o.id]) P[o.id].delReq = true;
+}
+function editTag(p){
+  if (!EDIT.on) return "";
+  return p.isNew ? `<span class="tag new">جديد</span>` : p.delReq ? `<span class="tag del">طلب حذف</span>` : p.edited ? `<span class="tag ed">معدَّل</span>` : "";
+}
+function refreshPerson(id){ viewPerson(id); editPersonUI(id); renderEditBar("person"); }
+
+// ---------- شريط التعديل أعلى الصفحات
+function renderEditBar(v){
+  const bar = document.getElementById("editbar");
+  if (!EDIT.on || v === "edit") { bar.innerHTML = ""; return; }
+  const n = EDIT.ops.length;
+  bar.innerHTML = `<div class="eline"><div class="ewrap"><b>وضع التعديل</b>
+    <span>${n ? `لديك ${AR(n)} ${n === 1 ? "تغيير" : n === 2 ? "تغييران" : n <= 10 ? "تغييرات" : "تغييراً"} لم ${n === 2 ? "يُرسلا" : "تُرسل"} بعد` : "اختر أي شخص لتعدّل بياناته أو تضيف أبناءه"}</span>
+    <span style="flex:1"></span>
+    ${n && v !== "edits" ? `<a class="btn" href="#edits">مراجعة وإرسال</a>` : ""}
+    <a class="btn ghost" href="#edit">${n ? "المساعدة" : "المساعدة والخروج"}</a></div></div>`;
+}
+
+// ---------- صفحة البداية: ‎#edit‎
+function viewEditStart(){
+  const n = EDIT.ops.length;
+  app.innerHTML = `<h1>صفحة التعديل</h1>
+    <div class="panel editp">
+      <p style="margin-top:0;font-size:16.5px;line-height:1.9">من هنا تستطيع تصحيح أي اسم أو إضافة أبناء وبنات لأي شخص في الشجرة.</p>
+      <ol style="font-size:16px;line-height:2;margin:0 0 6px;padding-inline-start:22px">
+        <li>ابحث عن الشخص بالأسفل، أو تصفّح الشجرة واضغط على اسمه.</li>
+        <li>في صفحته ستجد أزرار: <b>تعديل البيانات</b>، و<b>أضف ابناً أو بنتاً</b>.</li>
+        <li>عندما تنتهي اضغط <b>مراجعة وإرسال</b> في أعلى الصفحة.</li>
+      </ol>
+      <p style="color:var(--muted);margin:6px 0 0">تعديلاتك تظهر لك فوراً، ولا تظهر لبقية العائلة إلا بعد مراجعتها.</p>
+    </div>
+    <div class="panel"><div class="eform" id="startf" style="margin:0">
+      <div class="fld"><label for="e-who">اسمك</label><input id="e-who" value="${esc(EDIT.who)}" autocomplete="name" placeholder="حتى نعرف من أرسل التعديل"></div>
+      <div class="fld"><label for="e-find">ابحث عن الشخص الذي تريد تعديله</label>
+        <div class="searchbox" id="esearch" style="max-width:none"><input id="e-find" type="search" placeholder="اكتب الاسم…" autocomplete="off"><div class="results"></div></div></div>
+      <div class="row3"><button class="btn" type="button" id="e-go">${EDIT.on ? "متابعة التعديل" : "ابدأ التعديل"}</button>
+        <a class="btn ghost" href="#tree" id="e-tree">تصفّح الشجرة</a></div>
+      <p class="emsg err" id="e-st"></p>
+    </div></div>
+    ${EDIT.on ? `<div class="panel"><h2 style="margin-top:0;font-size:18px">الخروج من وضع التعديل</h2>
+      ${n ? `<p style="margin:0 0 10px">لديك ${AR(n)} تغييرات لم تُرسل بعد. إذا خرجت ستُحذف.</p>
+        <div class="row3" style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" href="#edits">أرسلها أولاً</a>
+        <button class="btn ghost" type="button" id="e-quit" style="color:#9b2c2c">احذفها واخرج</button></div>`
+      : `<button class="btn ghost" type="button" id="e-quit">خروج</button>`}</div>` : ""}`;
+  const who = document.getElementById("e-who"), st = document.getElementById("e-st");
+  const start = () => { if (!who.value.trim()) { st.textContent = "اكتب اسمك أولاً من فضلك."; who.focus(); return false; }
+    EDIT.who = who.value.trim(); EDIT.on = true; EDIT.save(); return true; };
+  wireSearch(document.getElementById("esearch"), pp => { if (start()) location.hash = hashOf(pp.id); });
+  document.getElementById("e-go").onclick = () => { if (start()) location.hash = "#tree"; };
+  document.getElementById("e-tree").onclick = e => { if (!start()) e.preventDefault(); };
+  const q = document.getElementById("e-quit");
+  if (q) q.onclick = () => { EDIT.on = false; EDIT.ops = []; EDIT.save(); location.hash = ""; location.reload(); };
+}
+
+// ---------- أدوات التعديل في صفحة الشخص
+function editPersonUI(id){
+  const p = P[id]; if (!p) return;
+  const top = app.querySelector(".panel");
+  const box = document.createElement("section");
+  box.className = "panel editp"; box.id = "editp";
+  const he = isF(p) ? "ها" : "ه";
+  box.innerHTML = `<h2>تعديل ${esc(p.name)}</h2>
+    ${p.isNew ? `<p style="margin:0 0 10px;color:#1d5c3f">أضفتَ ${esc(p.name)} ولم ${isF(p) ? "تُرسل" : "يُرسل"} بعد.</p>` : ""}
+    ${p.delReq ? `<p style="margin:0 0 10px;color:#8a2f2f">طلبتَ حذف ${esc(p.name)}. <button class="linkbtn" type="button" id="undel">إلغاء الطلب</button></p>` : ""}
+    <div class="ebtns">
+      <button type="button" data-f="info">تعديل البيانات</button>
+      <button type="button" data-f="kid">+ أضف ابناً أو بنتاً</button>
+      <button type="button" data-f="note">ملاحظة أخرى</button>
+      ${p.isNew ? `<button type="button" class="danger" data-f="rm">إزالة ${esc(p.name)}</button>`
+        : `<button type="button" class="danger" data-f="del">طلب حذف${he}</button>`}
+    </div>
+    <div class="eform" id="eform"></div>
+    <p class="emsg" id="emsg" role="status">${esc(ED.msg)}</p>`;
+  ED.msg = "";
+  top.after(box);
+  // زر «أضف» بجانب الأبناء أيضاً
+  const kidsH = [...app.querySelectorAll("h2")].find(h => h.textContent.startsWith("الأبناء"));
+  if (kidsH) { const b = document.createElement("button"); b.type = "button"; b.className = "chip addk"; b.textContent = "+ أضف ابناً أو بنتاً";
+    b.onclick = () => { openForm("kid"); box.scrollIntoView({behavior: "smooth", block: "start"}); };
+    const wrap = document.createElement("div"); wrap.className = "chips"; wrap.style.marginTop = "8px"; wrap.appendChild(b);
+    kidsH.parentElement.appendChild(wrap); }
+  const ud = document.getElementById("undel");
+  if (ud) ud.onclick = () => { EDIT.ops = EDIT.ops.filter(o => !(o.t === "del" && o.id === id)); delete p.delReq; EDIT.save(); ED.msg = "أُلغي طلب الحذف."; refreshPerson(id); };
+  box.querySelectorAll(".ebtns button").forEach(b => b.onclick = () => openForm(b.dataset.f));
+  if (ED.open) openForm(ED.open, true);
+
+  function openForm(f, keep){
+    if (ED.open === f && !keep) { ED.open = null; document.getElementById("eform").innerHTML = ""; markOn(); return; }
+    ED.open = f; markOn();
+    const fm = document.getElementById("eform");
+    if (f === "info") fm.innerHTML = infoForm(p);
+    else if (f === "kid") fm.innerHTML = kidForm(p);
+    else if (f === "note") fm.innerHTML = `<div class="fld"><label for="x-note">اكتب ما تريد قوله عن ${esc(p.name)}</label>
+        <textarea id="x-note" rows="4" placeholder="مثلاً: له ابن آخر لا أعرف اسمه، أو: تزوجت من فلان"></textarea></div>
+        <div class="row3"><button class="btn" type="button" id="x-save">حفظ</button><button class="btn ghost" type="button" id="x-cancel">إلغاء</button></div>`;
+    else if (f === "del") fm.innerHTML = `<p style="margin:0;font-size:16px">هل تريد طلب حذف <b>${esc(nm(p))}</b> من الشجرة؟ ${p.kids.length ? `(${isF(p) ? "لها" : "له"} ${AR(p.kids.length)} من الأبناء المسجلين)` : ""}</p>
+        <div class="fld"><label for="x-why">السبب <span class="opt">(اختياري)</span></label><input id="x-why" placeholder="مثلاً: مكرر، أو ليس من العائلة"></div>
+        <div class="row3"><button class="btn" type="button" id="x-save" style="background:#9b2c2c">نعم، اطلب الحذف</button><button class="btn ghost" type="button" id="x-cancel">إلغاء</button></div>`;
+    else if (f === "rm") fm.innerHTML = `<p style="margin:0;font-size:16px">إزالة <b>${esc(p.name)}</b> التي أضفتها${p.kids.length ? " ومن أضفتهم تحته" : ""}؟</p>
+        <div class="row3"><button class="btn" type="button" id="x-save" style="background:#9b2c2c">نعم، أزِله</button><button class="btn ghost" type="button" id="x-cancel">إلغاء</button></div>`;
+    document.getElementById("x-cancel").onclick = () => { ED.open = null; fm.innerHTML = ""; markOn(); };
+    document.getElementById("x-save").onclick = () => save(f, false);
+    const more = document.getElementById("x-more"); if (more) more.onclick = () => save(f, true);
+    const first = fm.querySelector("input:not([type=radio]):not([type=checkbox]),textarea"); if (first && !keep) first.focus();
+  }
+  function markOn(){ box.querySelectorAll(".ebtns button").forEach(b => b.classList.toggle("on", b.dataset.f === ED.open)); }
+  function val(i){ const e = document.getElementById(i); return e ? e.value.trim() : ""; }
+  function err(t, focusId){ const m = document.getElementById("emsg"); m.className = "emsg err"; m.textContent = t; if (focusId) document.getElementById(focusId).focus(); }
+  function save(f, again){
+    if (f === "info") {
+      const v = {name: val("x-name"), alias: val("x-alias"), spouse: val("x-spouse"), notes: val("x-notes"),
+        gender: (document.querySelector("input[name=x-g]:checked") || {}).value || p.gender, dead: document.getElementById("x-dead").checked};
+      if (!v.name) return err("اكتب الاسم.", "x-name");
+      const ao = addOp(id);
+      if (ao) { Object.assign(ao.v, v); Object.assign(p, v); delete SKEY[id]; }
+      else {
+        const o0 = ORIG[id], changed = EFIELDS.some(k => (o0[k] || "") !== (v[k] || ""));
+        EDIT.ops = EDIT.ops.filter(o => !(o.t === "edit" && o.id === id));
+        EFIELDS.forEach(k => p[k] = o0[k]); delete p.edited;
+        if (changed) { const o = {t: "edit", id, v}; EDIT.ops.push(o); applyOp(o); }
+      }
+      ED.msg = "حُفظ التعديل."; ED.open = null;
+    } else if (f === "kid") {
+      const name = val("x-name"), g = (document.querySelector("input[name=x-g]:checked") || {}).value;
+      if (!name) return err("اكتب اسم الابن أو البنت.", "x-name");
+      if (!g) return err("اختر: ابن أم بنت.");
+      const sel = val("x-mom"), o = {t: "add", id: newId(), parent: id, v: {name, gender: g, dead: document.getElementById("x-dead").checked}};
+      if (sel.startsWith("sp:")) { o.other = sel.slice(3); const sib = p.kids.map(k => P[k]).find(k => k.mother === o.other || k.father === o.other); if (sib && sib.group) o.v.group = sib.group; }
+      else if (sel.startsWith("g:")) o.v.group = sel.slice(2);
+      else if (sel === "new" && val("x-momtxt")) o.v.group = (isF(p) ? "الأب: " : "الأم: ") + val("x-momtxt");
+      EDIT.ops.push(o); applyOp(o);
+      ED.msg = `أُضيف${g === "أنثى" ? "ت" : ""} ${name}.` + (again ? " أضف التالي:" : ""); ED.open = again ? "kid" : null;
+    } else if (f === "note") {
+      const t = val("x-note"); if (!t) return err("اكتب الملاحظة.", "x-note");
+      EDIT.ops.push({t: "note", id, text: t}); ED.msg = "حُفظت الملاحظة."; ED.open = null;
+    } else if (f === "del") {
+      const o = {t: "del", id, why: val("x-why")}; EDIT.ops.push(o); applyOp(o); ED.msg = "سُجّل طلب الحذف."; ED.open = null;
+    } else if (f === "rm") {
+      const gone = new Set([id]); let grew = true;
+      while (grew) { grew = false; EDIT.ops.forEach(o => { if (o.t === "add" && gone.has(o.parent) && !gone.has(o.id)) { gone.add(o.id); grew = true; } }); }
+      EDIT.ops = EDIT.ops.filter(o => !gone.has(o.id) && !gone.has(o.parent));
+      EDIT.save(); ED.open = null;
+      const par = upParent(p); location.hash = par ? hashOf(par.id) : "#edit"; location.reload(); return;
+    }
+    EDIT.save(); refreshPerson(id);
+    if (ED.open === "kid") { const i = document.getElementById("x-name"); if (i) i.focus(); }
+    else document.getElementById("editp").scrollIntoView({block: "nearest"});
+  }
+}
+function infoForm(p){
+  return `<div class="fld"><label for="x-name">الاسم</label><input id="x-name" value="${esc(p.name)}"></div>
+    <div class="fld"><label>الجنس</label><div class="seg">
+      <label><input type="radio" name="x-g" value="ذكر" ${p.gender === "ذكر" ? "checked" : ""}>ذكر</label>
+      <label><input type="radio" name="x-g" value="أنثى" ${p.gender === "أنثى" ? "checked" : ""}>أنثى</label></div></div>
+    <div class="fld"><label for="x-alias">اللقب أو الاسم الذي يُعرف به <span class="opt">(اختياري)</span></label><input id="x-alias" value="${esc(p.alias)}"></div>
+    <div class="fld"><label for="x-spouse">${isF(p) ? "الزوج" : "الزوجة"} <span class="opt">(اختياري)</span></label><input id="x-spouse" value="${esc(p.spouse)}"></div>
+    <label class="chk"><input type="checkbox" id="x-dead" ${p.dead ? "checked" : ""}>${isF(p) ? "متوفاة، رحمها الله" : "متوفى، رحمه الله"}</label>
+    <div class="fld"><label for="x-notes">ملاحظة تظهر في صفحته <span class="opt">(اختياري)</span></label><input id="x-notes" value="${esc(p.notes)}"></div>
+    <div class="row3"><button class="btn" type="button" id="x-save">حفظ</button><button class="btn ghost" type="button" id="x-cancel">إلغاء</button></div>`;
+}
+function kidForm(p){
+  // من أي زوجة: الزوجات داخل الشجرة، ثم مجموعات الأبناء المسجلة
+  const opts = [], seen = new Set();
+  spouseOf(p).forEach(s => { const sib = p.kids.map(k => P[k]).find(k => k.mother === s.id || k.father === s.id);
+    opts.push([`sp:${s.id}`, (isF(p) ? "من زوجها " : "من زوجته ") + shortName(s, 3)]); if (sib && sib.group) seen.add(sib.group); });
+  p.kids.map(k => P[k]).forEach(k => { if (k.group && !seen.has(k.group)) { seen.add(k.group); opts.push([`g:${k.group}`, k.group]); } });
+  const pick = opts.length ? `<div class="fld"><label for="x-mom">${isF(p) ? "من أي زوج؟" : "من أي زوجة؟"}</label>
+      <select id="x-mom" onchange="document.getElementById('x-momw').hidden=this.value!=='new'">
+        ${opts.map(([v, t]) => `<option value="${esc(v)}">${esc(t)}</option>`).join("")}
+        <option value="new">${isF(p) ? "زوج آخر" : "زوجة أخرى"}</option><option value="">لا أعرف</option></select></div>
+      <div class="fld" id="x-momw" hidden><label for="x-momtxt">${isF(p) ? "اسم الأب" : "اسم الأم"}</label><input id="x-momtxt"></div>`
+    : `<input type="hidden" id="x-mom" value="new"><div class="fld"><label for="x-momtxt">${isF(p) ? "اسم الأب" : "اسم الأم"} <span class="opt">(اختياري)</span></label><input id="x-momtxt"></div>`;
+  return `<div class="fld"><label for="x-name">الاسم</label><input id="x-name" autocomplete="off" placeholder="الاسم الأول فقط"></div>
+    <div class="fld"><label>ابن أم بنت؟</label><div class="seg">
+      <label><input type="radio" name="x-g" value="ذكر">ابن</label><label><input type="radio" name="x-g" value="أنثى">بنت</label></div></div>
+    ${pick}
+    <label class="chk"><input type="checkbox" id="x-dead">متوفى، رحمه الله</label>
+    <div class="row3"><button class="btn" type="button" id="x-save">حفظ</button><button class="btn ghost" type="button" id="x-more">حفظ وإضافة آخر</button>
+      <button class="btn ghost" type="button" id="x-cancel">إلغاء</button></div>`;
+}
+
+// ---------- وصف التغييرات بالعربية (للمراجعة والبريد)
+const FL = {name: "الاسم", alias: "اللقب", gender: "الجنس", spouse: "الزوج/الزوجة", dead: "الوفاة", notes: "الملاحظة"};
+const who = id => P[id] ? shortName(P[id], 5) + (P[id].isNew ? " (جديد)" : "") : id;
+function opText(o){
+  if (o.t === "edit") {
+    const a = ORIG[o.id], parts = EFIELDS.filter(k => (a[k] || "") !== (o.v[k] || "")).map(k =>
+      k === "dead" ? (o.v.dead ? "صار متوفى" : "أُلغيت علامة الوفاة") : `${FL[k]}: «${a[k] || "—"}» ← «${o.v[k] || "—"}»`);
+    return {k: "تعديل", c: "ed", t: `${shortName(a, 5)}: ${parts.join("، ")}`};
+  }
+  if (o.t === "add") {
+    const v = o.v, par = P[o.parent];
+    const bits = [v.gender === "أنثى" ? "بنت" : "ابن", v.group, o.other && P[o.other] ? (isF(par) ? "أبوه/أبوها: " : "أمه/أمها: ") + shortName(P[o.other], 3) : "",
+      v.dead ? "متوفى" : "", v.alias ? "لقبه «" + v.alias + "»" : "", v.spouse ? "زوجه/زوجته: " + v.spouse : "", v.notes].filter(Boolean);
+    return {k: "إضافة", c: "new", t: `في أبناء ${who(o.parent)}: ${v.name} (${bits.join("، ")})`};
+  }
+  if (o.t === "del") return {k: "حذف", c: "del", t: `طلب حذف ${who(o.id)}` + (o.why ? ` — السبب: ${o.why}` : "")};
+  return {k: "ملاحظة", c: "ed", t: `عن ${who(o.id)}: ${o.text}`};
+}
+
+// ---------- المراجعة والإرسال: ‎#edits‎
+function viewEdits(){
+  if (!EDIT.on) { location.hash = "#edit"; return; }
+  const ops = EDIT.ops;
+  app.innerHTML = `<h1>مراجعة التغييرات</h1>
+    ${ops.length ? `<p class="lead">تأكد من التغييرات، ثم اضغط إرسال. ستصل إلينا لنراجعها ونضيفها إلى الموقع.</p>
+    <ul class="oplist">${ops.map((o, i) => { const x = opText(o);
+      return `<li><div class="ot"><span class="ok tag ${x.c}">${x.k}</span>${esc(x.t)}</div>
+        <a class="btn ghost sm" href="${hashOf(o.t === "add" ? o.parent : o.id)}">فتح</a>
+        <button class="btn ghost sm" type="button" data-i="${i}">إلغاء</button></li>`; }).join("")}</ul>
+    <form class="panel eform" id="sendf" style="margin-top:16px">
+      <div class="fld"><label for="s-who">اسمك</label><input id="s-who" value="${esc(EDIT.who)}" autocomplete="name"></div>
+      <div class="fld"><label for="s-tel">رقم للتواصل <span class="opt">(اختياري)</span></label><input id="s-tel" type="tel" inputmode="tel" dir="ltr" value="${esc(EDIT.phone)}"></div>
+      <div class="row3"><button class="btn" type="submit" id="s-go">إرسال التغييرات</button><a class="btn ghost" href="#tree">متابعة التعديل</a></div>
+      <p class="emsg err" id="s-st" role="status"></p>
+    </form>` : `<p class="lead">لا توجد تغييرات بعد. افتح صفحة أي شخص لتعدّل بياناته أو تضيف أبناءه.</p>
+    <a class="btn" href="#tree">تصفّح الشجرة</a>`}`;
+  app.querySelectorAll("button[data-i]").forEach(b => b.onclick = () => {
+    const o = EDIT.ops[+b.dataset.i];
+    let gone = new Set(o.t === "add" ? [o.id] : []), grew = o.t === "add";
+    while (grew) { grew = false; EDIT.ops.forEach(x => { if (x.t === "add" && gone.has(x.parent) && !gone.has(x.id)) { gone.add(x.id); grew = true; } }); }
+    EDIT.ops = EDIT.ops.filter(x => x !== o && !gone.has(x.id) && !(x.t === "add" && gone.has(x.parent)));
+    EDIT.save(); location.reload();
+  });
+  const f = document.getElementById("sendf"); if (!f) return;
+  f.onsubmit = async e => {
+    e.preventDefault();
+    const st = document.getElementById("s-st"), go = document.getElementById("s-go"), w = document.getElementById("s-who");
+    if (!w.value.trim()) { st.textContent = "اكتب اسمك من فضلك."; w.focus(); return; }
+    EDIT.who = w.value.trim(); EDIT.phone = document.getElementById("s-tel").value.trim(); EDIT.save();
+    const body = {_subject: `شجرة البشيراب: ${AR(ops.length)} تغييرات من ${EDIT.who}`, _template: "table",
+      "المرسل": EDIT.who, "رقم التواصل": EDIT.phone || "—"};
+    ops.forEach((o, i) => { const x = opText(o); body[`${AR(i + 1)}. ${x.k}`] = x.t; });
+    body["بيانات للتطبيق (لا تعدّلها)"] = JSON.stringify(ops);
+    go.disabled = true; st.className = "emsg"; st.textContent = "جارٍ الإرسال…";
+    try {
+      const r = await fetch("https://formsubmit.co/ajax/" + DATA.formTo, {method: "POST",
+        headers: {"Content-Type": "application/json", "Accept": "application/json"}, body: JSON.stringify(body)});
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || String(j.success) === "false") throw new Error(j.message || r.status);
+      EDIT.ops = []; EDIT.save();
+      app.innerHTML = `<h1>شكراً لك</h1><p class="fok" tabindex="-1" id="s-ok">وصلت تغييراتك إلينا، وسنراجعها ونضيفها إلى الموقع بإذن الله.</p>
+        <div class="row3" style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><button class="btn" type="button" id="s-again">تعديلات أخرى</button>
+        <button class="btn ghost" type="button" id="s-out">خروج من وضع التعديل</button></div>`;
+      document.getElementById("s-ok").focus();
+      document.getElementById("s-again").onclick = () => { location.hash = "#tree"; location.reload(); };
+      document.getElementById("s-out").onclick = () => { EDIT.on = false; EDIT.save(); location.hash = ""; location.reload(); };
+      renderEditBar("edits");
+    } catch (err) { go.disabled = false; st.className = "emsg err"; st.textContent = "لم تُرسل. تأكد من الاتصال بالإنترنت وحاول مرة أخرى."; }
+  };
+}
+EDIT.load();
+if (EDIT.on) EDIT.ops.forEach(applyOp);
+
 addEventListener("hashchange", route);
 route();
 </script>
