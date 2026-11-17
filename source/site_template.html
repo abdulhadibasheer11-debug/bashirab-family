@@ -341,6 +341,24 @@ body.hasfab #foot{padding-bottom:90px}
 .searchbox.big input{font-size:18px;padding:13px 14px}
 .btn.off{opacity:.45;cursor:not-allowed}
 @media(max-width:700px){.kctl{flex-basis:100%;padding-inline-start:26px}.krow .kname{width:auto}.efsave #ef-save{max-width:none;flex-basis:100%}}
+/* ---------- لوحة صاحب الموقع (#admin) */
+.alinks{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px 16px;font-size:16px}
+.alinks a,.alist a{color:var(--teal);font-weight:700}
+.alist{margin:0 0 14px;padding-inline-start:20px;line-height:1.9;font-size:15.5px}
+.alist a.sm{font-weight:500;font-size:13.5px;color:var(--teal2);margin-inline-start:4px}
+.anums{list-style:none;margin:0 0 14px;padding:0;font-size:16.5px;line-height:2}
+.anums b{color:var(--teal);font-size:18px}
+#a-vis #v-sum{font-size:18px}
+#a-vis #v-sum b{color:var(--teal);font-size:22px}
+.tblw{overflow-x:auto;margin:10px 0}
+.atbl{border-collapse:collapse;width:100%;font-size:15px}
+.atbl caption{text-align:start;font-weight:700;margin-bottom:6px}
+.atbl th,.atbl td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:start}
+.atbl thead th{background:#eef3f2}
+.muted{color:var(--muted);font-size:14px}
+.ares{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-top:12px;background:#fff}
+.ares h3{margin:0 0 6px}
+section[tabindex="-1"]:focus{outline:none}
 </style>
 </head>
 <body>
@@ -1096,6 +1114,7 @@ function renderRoute(vt){
   else if (h === "fix") { v = "fix"; viewFix(); }
   else if (h === "edit") { v = "edit"; viewEditStart(); }
   else if (h === "edits") { v = "edits"; viewEdits(); }
+  else if (h === "admin") { v = "admin"; viewAdmin(); }
   else if (h.startsWith("e-")) { v = "editfam"; viewEditFamily(h.slice(2).replace(/-/g, ".")); }
   else { viewHome(); showA2HS(); }
   renderMeBar(v); renderEditBar(v);
@@ -1466,6 +1485,135 @@ function viewEdits(){
 }
 EDIT.load();
 if (EDIT.on) EDIT.ops.forEach(applyOp);
+
+// ---------- عدّاد الزوار (counterapi.dev، بلا حساب): جهاز جديد مرة واحدة، وزيارة مرة لكل جهاز في اليوم.
+// لا يُحسب جهاز صاحب الموقع (من فتح صفحة الآدمن)، ولا النسخة المحلية من الموقع.
+const CNT = "https://api.counterapi.dev/v1/bashirab-family-ab11/";
+(function countVisit(){
+  try {
+    if (location.protocol !== "https:" || localStorage.getItem("bashirab_admin") === "1") return;
+    const today = new Date().toISOString().slice(0, 10);
+    if (!localStorage.getItem("bashirab_dev")) { localStorage.setItem("bashirab_dev", today); fetch(CNT + "devices/up").catch(() => {}); }
+    if (localStorage.getItem("bashirab_day") !== today) { localStorage.setItem("bashirab_day", today); fetch(CNT + "visits/up").catch(() => {}); }
+  } catch (e) {}
+})();
+async function cntGet(path){
+  const r = await fetch(CNT + path); if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+const numOf = j => { if (j == null) return null; if (typeof j === "number") return j;
+  for (const k of ["count", "Count", "value", "Value"]) if (typeof j[k] === "number") return j[k];
+  if (j.data != null) return numOf(j.data); return null; };
+function listOf(j){
+  const arr = Array.isArray(j) ? j : Array.isArray(j && j.data) ? j.data : Array.isArray(j && j.counts) ? j.counts : [];
+  return arr.map(it => { let d = "", n = null;
+    for (const [k, v] of Object.entries(it)) { if (typeof v === "number" && n === null) n = v; else if (typeof v === "string" && /\d{4}-\d{2}-\d{2}/.test(v) && !d) d = v.slice(0, 10); }
+    return {d, n}; }).filter(x => x.d && x.n !== null);
+}
+
+// ---------- صفحة الآدمن: ‎#admin‎ (لا تظهر في أي قائمة)
+function viewAdmin(){
+  try { localStorage.setItem("bashirab_admin", "1"); } catch (e) {}
+  const all = DATA.people.filter(p => !p.isNew);
+  const n = all.length, dead = all.filter(p => p.dead).length, m = all.filter(p => p.gender === "ذكر").length, f = all.filter(p => p.gender === "أنثى").length;
+  // الأجيال: البعد عن الجد الأكبر عبر الأب أو الأم
+  const GEN = {}; const gen = id => { if (GEN[id]) return GEN[id]; const p = P[id]; GEN[id] = 1;
+    const ps = [p.father, p.mother].filter(x => x && P[x]); GEN[id] = ps.length ? 1 + Math.max(...ps.map(gen)) : 1; return GEN[id]; };
+  all.forEach(p => gen(p.id));
+  const byGen = {}; all.forEach(p => byGen[GEN[p.id]] = (byGen[GEN[p.id]] || 0) + 1);
+  const brs = [...kidsOf(P[MAIN]), ...kidsOf(P[ROOT]).filter(k => k.id !== MAIN)];
+  const base = DATA.base || {b: {}};
+  const brRows = brs.map(b => { const c = descendants(b.id).size + 1, was = base.b[b.id]; return {b, c, d: was == null ? null : c - was}; }).sort((a, z) => z.c - a.c);
+  const unk = all.filter(p => p.unknown);
+  const noWife = all.filter(p => p.gender === "ذكر" && p.kids.length && !p.spouse &&
+    !p.kids.some(k => (P[k].mother && P[k].mother !== p.id) || (P[k].group && P[k].group.includes(":"))));
+  const SP = /^(احمد|اسماء|ابراهيم|اسامة|اسامه|امنة|امنه|امين|ايمن|اسيا|اخلاص|اقبال|اكرام|امير|انور|ايمان|الاء|امل|امال|انس|اسراء|اية|ابتسام|ادريس|اسماعيل|ادم)$|^(فاطمه|عائشه|عايشه|آمنه|خديجه|رقيه|سميره|منيره|حليمه|زكيه|سعيده|نفيسه)$/;
+  const spell = all.filter(p => SP.test(p.name));
+  const tmp = all.filter(p => (p.notes || "").includes("مؤقت"));
+  const L = (p, t) => `<a href="${hashOf(p.id)}">${esc(t || shortName(p, 5))}</a> <a class="sm" href="${eid(p.id)}" aria-label="تعديل ${esc(p.name)}">✎ تعديل</a>`;
+  const T = (cap, head, rows) => `<div class="tblw"><table class="atbl"><caption>${cap}</caption><thead><tr>${head.map(h => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
+  app.innerHTML = `<h1>لوحة صاحب الموقع</h1>
+    <p class="lead">هذه الصفحة لا تظهر في أي قائمة. احفظ رابطها عندك. زياراتك من هذا الجهاز لا تُحسب في عدّاد الزوار.</p>
+    <nav class="panel" aria-label="أقسام اللوحة"><ul class="alinks">
+      <li><a href="#a-vis">الزوار</a></li><li><a href="#a-num">الأرقام</a></li><li><a href="#a-miss">ما ينقص الشجرة</a></li>
+      <li><a href="#a-find">البحث بالرقم والاسم</a></li><li><a href="#a-log">سجل الإضافات</a></li><li><a href="#a-files">الملفات</a></li></ul></nav>
+
+    <section class="panel" id="a-vis" tabindex="-1"><h2>الزوار</h2>
+      <p id="v-sum" role="status">جارٍ جلب الأرقام…</p>
+      <div id="v-days"></div>
+      <p class="muted">العدّ بدأ في ١٨ نوفمبر ٢٠٢٦. «الأجهزة» عدد الجوالات والأجهزة المختلفة التي فتحت الموقع (يقارب عدد الأشخاص). «الزيارات» تُحسب مرة واحدة لكل جهاز في اليوم مهما فتح من صفحات.</p></section>
+
+    <section class="panel" id="a-num" tabindex="-1"><h2>الأرقام</h2>
+      <ul class="anums">
+        <li>عدد أفراد الشجرة: <b>${AR(n)}</b>${base.total != null && n !== base.total ? ` (${n > base.total ? "+" : ""}${AR(n - base.total)} منذ ${esc(base.date)})` : ""}</li>
+        <li>الأحياء: <b>${AR(n - dead)}</b>، والمتوفون رحمهم الله: <b>${AR(dead)}</b></li>
+        <li>الذكور: <b>${AR(m)}</b>، والإناث: <b>${AR(f)}</b></li>
+        <li>عدد الأجيال من الجد الأكبر بشير: <b>${AR(Math.max(...Object.values(GEN)))}</b></li>
+      </ul>
+      ${T("عدد الأفراد في كل جيل", ["الجيل", "العدد"], Object.keys(byGen).sort((a, b) => a - b).map(g => `<tr><th scope="row">${AR(+g)}</th><td>${AR(byGen[g])}</td></tr>`))}
+      ${T(`الفروع، من الأكبر إلى الأصغر${base.date ? ` · الزيادة منذ ${esc(base.date)}` : ""}`, ["الفرع", "العدد مع رأس الفرع", "الزيادة"],
+        brRows.map(r => `<tr><th scope="row"><a href="${tid(r.b.id)}">${esc(nm(r.b))}</a></th><td>${AR(r.c)}</td><td>${r.d ? (r.d > 0 ? "+" : "") + AR(r.d) : "—"}</td></tr>`))}
+      <p class="muted">من كان أبوه من فرع وأمه من فرع آخر يُحسب في الفرعين.</p></section>
+
+    <section class="panel" id="a-miss" tabindex="-1"><h2>ما ينقص الشجرة</h2>
+      <h3>أمور معلّقة (${AR((DATA.pending || []).length)})</h3>
+      <ul class="alist">${(DATA.pending || []).map(([id, t]) => `<li>${esc(t)} ${P[id] ? L(P[id], isF(P[id]) ? "صفحتها" : "صفحته") : ""}</li>`).join("") || "<li>لا شيء.</li>"}</ul>
+      <h3>أبناء لم تُسجَّل أسماؤهم (${AR(unk.length)})</h3>
+      <ul class="alist">${unk.map(p => `<li>${L(p)}: ${esc(p.unknown)}</li>`).join("")}</ul>
+      <h3>آباء لا نعرف زوجاتهم أو أمهات أبنائهم (${AR(noWife.length)})</h3>
+      <ul class="alist">${noWife.map(p => `<li>${L(p)} (${AR(p.kids.length)} ${p.kids.length > 2 && p.kids.length < 11 ? "أبناء" : "من الأبناء"})</li>`).join("")}</ul>
+      <h3>ترتيب الأبناء مؤقت (${AR(tmp.length)})</h3>
+      <ul class="alist">${tmp.map(p => `<li>${L(p)}</li>`).join("") || "<li>لا شيء.</li>"}</ul>
+      <h3>أسماء تحتاج مراجعة إملائية (${AR(spell.length)})</h3>
+      <ul class="alist">${spell.map(p => `<li>${L(p)}</li>`).join("") || "<li>لا شيء. (تُفحص الهمزات مثل احمد واسماء، والتاء المربوطة مثل فاطمه)</li>"}</ul></section>
+
+    <section class="panel" id="a-find" tabindex="-1"><h2>البحث بالرقم والاسم</h2>
+      <div class="fld"><label for="a-id">رقم الشخص، مثل 1.12.1</label>
+        <div class="row3"><input id="a-id" dir="ltr" inputmode="decimal" style="flex:1;min-width:0"><button class="btn" type="button" id="a-idgo">اعرض</button></div></div>
+      <div class="fld" style="margin-top:12px"><label for="a-q">أو اكتب الاسم</label>
+        <div class="searchbox" id="a-search" style="max-width:none"><input id="a-q" type="search" autocomplete="off"><div class="results"></div></div></div>
+      <div id="a-res" role="status" aria-live="polite"></div></section>
+
+    <section class="panel" id="a-log" tabindex="-1"><h2>سجل الإضافات</h2>
+      ${(DATA.changes || []).map(([d, items]) => `<h3>${esc(d)}</h3><ul class="alist">${items.map(t => `<li>${esc(t)}</li>`).join("")}</ul>`).join("")}</section>
+
+    <section class="panel" id="a-files" tabindex="-1"><h2>الملفات</h2>
+      <ul class="alist"><li><a href="${DATA.pdf}" download>كتاب العائلة PDF</a></li>
+        <li><a href="bashirab-family-data.xlsx" download>ملف Excel بالبيانات</a></li>
+        <li><a href="bashirab-family-edit.docx" download>نسخة Word للتعديل</a></li></ul></section>`;
+  app.querySelectorAll(".alinks a").forEach(a => a.onclick = e => { e.preventDefault(); const s = document.querySelector(a.getAttribute("href")); s.scrollIntoView({behavior: "smooth"}); s.focus({preventScroll: true}); });
+  // البحث
+  const res = document.getElementById("a-res");
+  const show = p => {
+    if (!p) { res.innerHTML = `<p class="emsg err">لا يوجد شخص بهذا الرقم.</p>`; return; }
+    const mo = p.mother && P[p.mother], fa = p.father && P[p.father];
+    res.innerHTML = `<div class="ares"><h3>${esc(p.name)}${p.alias ? ` «${esc(p.alias)}»` : ""}${p.dead ? " (ر)" : ""}</h3><ul class="alist">
+      <li>الرقم: <b dir="ltr">${esc(p.id)}</b></li>
+      <li>النسب الكامل: ${esc(shortName(p, 20))}</li>
+      <li>${isF(p) ? "أنثى" : "ذكر"}${p.spouse ? ` · ${isF(p) ? "زوجها" : "زوجته"}: ${esc(p.spouse)}` : ""}</li>
+      ${mo ? `<li>${isF(p) ? "أمها" : "أمه"}: ${esc(shortName(mo, 4))} <span dir="ltr">(${esc(mo.id)})</span></li>` : p.group ? `<li>${p.group.startsWith("الأم:") ? (isF(p) ? "أمها: " : "أمه: ") + esc(p.group.replace(/^الأم:\s*/, "")) : "من: " + esc(p.group)}</li>` : ""}
+      <li>الأبناء المسجلون: ${AR(p.kids.length)} · الذرية: ${AR(descendants(p.id).size)}</li>
+      <li><a href="${hashOf(p.id)}">صفحته</a> · <a href="${tid(p.id)}">شجرته</a> · <a href="${eid(p.id)}">تعديله</a></li></ul></div>`;
+  };
+  const idIn = document.getElementById("a-id");
+  const go = () => { const v = idIn.value.trim().replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[٫,،\s]+/g, "."); if (v) show(P[v]); };
+  document.getElementById("a-idgo").onclick = go;
+  idIn.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); go(); } };
+  wireSearch(document.getElementById("a-search"), show);
+  // الزوار
+  (async () => {
+    const sum = document.getElementById("v-sum"), days = document.getElementById("v-days");
+    try {
+      const [dv, vs] = await Promise.all([cntGet("devices/"), cntGet("visits/")]);
+      const a = numOf(dv), b = numOf(vs);
+      sum.innerHTML = `الأجهزة: <b>${a == null ? "؟" : AR(a)}</b> · الزيارات: <b>${b == null ? "؟" : AR(b)}</b>`;
+    } catch (e) { sum.textContent = "لم يكتمل جلب الأرقام. قد لا يكون أحد زار الموقع بعد منذ إضافة العدّاد، أو أن الاتصال انقطع؛ جرّب لاحقاً."; }
+    try {
+      const rows = listOf(await cntGet("visits/list?group_by=day&order_by=desc")).slice(0, 14);
+      if (rows.length) days.innerHTML = T("الزيارات في آخر الأيام", ["اليوم", "الزيارات"], rows.map(r => `<tr><th scope="row">${esc(r.d)}</th><td>${AR(r.n)}</td></tr>`));
+    } catch (e) {}
+  })();
+}
 
 addEventListener("hashchange", route);
 route();

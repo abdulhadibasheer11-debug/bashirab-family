@@ -1,6 +1,8 @@
 import sys, json
 sys.path.insert(0, "/home/claude/family")
-from data import people, children, missing, CHANGELOG
+from data import people, children, missing, CHANGELOG, PENDING
+import os
+BASE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "baseline.json")))
 
 # ملف الكتاب المنشور في جذر الموقع (اسم ثابت يُستبدل كل سنة) والاسم الذي يُحفظ به عند التنزيل
 PDF = "bashirab-family-book.pdf"
@@ -14,7 +16,7 @@ for p in people:
                             "group", "spouse", "notes", "dead", "unknown", "alias")}
     q["kids"] = [c["id"] for c in children(p["id"])]
     out.append(q)
-data = {"people": out, "updated": CHANGELOG[0][0], "changes": CHANGELOG,
+data = {"people": out, "updated": CHANGELOG[0][0], "changes": CHANGELOG, "pending": PENDING, "base": BASE,
         "pdf": PDF, "pdfName": PDF_NAME, "formTo": FORM_TO}
 tpl = open("/home/claude/family/site_template.html").read()
 html = (tpl.replace("__DATA__", json.dumps(data, ensure_ascii=False))
