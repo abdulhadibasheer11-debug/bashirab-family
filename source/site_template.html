@@ -521,9 +521,9 @@ function viewHome(){
       <div class="htop">${chip(P[ROOT], "hl")} <span class="cnt">الجد الأكبر</span></div>
       <div class="hsibs">${kidsOf(P[ROOT]).map(k => chip(k, k.id === MAIN ? "hl" : "")).join("")}</div>
       <div class="tvline"></div>
-      <div class="tgroup" style="text-align:center"><div class="tglbl">أبناء محمد بشير</div>
+      <div class="tgroup" style="text-align:center"><div class="tglbl">أبناء محمد بشير من زوجاته الثلاث: شُمَّة وكلتوم وآمنة الحاج</div>
         <div class="tgrid" style="text-align:start">${kidsOf(root).map(k => tcardHtml(k, true)).join("")}</div></div>
-      <p class="hnote">اضغط أي اسم لتنزل إلى أبنائه. والمؤكد أن كلتوم أم دياب وعثمان وعجائب، وتقسيم بقية الأبناء حسب الزوجات مبدئي.</p>
+      <p class="hnote">اضغط أي اسم لتنزل إلى أبنائه.</p>
       <div class="hmore"><a class="btn" href="#tree">افتح الشجرة كاملة</a></div>
     </div>
     <h2>فروع العائلة</h2>
