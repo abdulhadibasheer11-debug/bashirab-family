@@ -1434,7 +1434,9 @@ function viewEdits(){
     if (!w.value.trim()) { st.textContent = "اكتب اسمك أولاً، فلا تُرسل التغييرات بلا اسم."; w.focus(); return; }
     EDIT.who = w.value.trim(); EDIT.phone = document.getElementById("s-tel").value.trim(); EDIT.save();
     // نفس صيغة نموذج «اقتراح أو سؤال» المجرَّب: الاسم والرسالة ورقم التواصل
-    const lines = ops.map((o, i) => { const x = opText(o); return `${AR(i + 1)}- ${x.k}: ${x.t}`; });
+    // رقم الشخص في آخر كل سطر حتى يُعرف المقصود بدقة عند التطبيق (لا يظهر في صفحة المراجعة)
+    const ref = o => o.t === "add" ? (P[o.parent] && P[o.parent].isNew ? "" : `  [في ${o.parent}]`) : `  [${o.id}]`;
+    const lines = ops.map((o, i) => { const x = opText(o); return `${AR(i + 1)}- ${x.k}: ${x.t}${ref(o)}`; });
     const body = {"الاسم": EDIT.who, "الرسالة": lines.join("\n"),
       "رقم التواصل": EDIT.phone || "—", _subject: "شجرة البشيراب: تعديلات من " + EDIT.who, _template: "table"};
     go.disabled = true; st.className = "emsg"; st.textContent = "جارٍ الإرسال…";
