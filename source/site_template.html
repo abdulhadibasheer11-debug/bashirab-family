@@ -924,7 +924,8 @@ function viewFix(){
     body._template = "table";
     send.disabled = true; st.textContent = "جارٍ الإرسال…";
     try {
-      const r = await fetch("https://formsubmit.co/ajax/" + DATA.formTo, {method: "POST",
+      const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 20000);
+      const r = await fetch("https://formsubmit.co/ajax/" + DATA.formTo, {method: "POST", signal: ac.signal,
         headers: {"Content-Type": "application/json", "Accept": "application/json"}, body: JSON.stringify(body)});
       const j = await r.json().catch(() => ({}));
       if (!r.ok || String(j.success) === "false") throw new Error(j.message || r.status);
@@ -1370,13 +1371,14 @@ function viewEdits(){
     EDIT.who = w.value.trim(); EDIT.phone = document.getElementById("s-tel").value.trim(); EDIT.save();
     // نفس صيغة نموذج «أرسل تصحيحاً» المجرَّب: الاسم والرسالة ورقم التواصل
     const lines = ops.map((o, i) => { const x = opText(o); return `${AR(i + 1)}- ${x.k}: ${x.t}`; });
-    const body = {"الاسم": EDIT.who, "الرسالة": lines.join("\n") + "\n\n—— للتطبيق ——\n" + JSON.stringify(ops),
+    const body = {"الاسم": EDIT.who, "الرسالة": lines.join("\n"),
       "رقم التواصل": EDIT.phone || "—", _subject: "شجرة البشيراب: تعديلات من " + EDIT.who, _template: "table"};
     go.disabled = true; st.className = "emsg"; st.textContent = "جارٍ الإرسال…";
     try {
-      const r = await fetch("https://formsubmit.co/ajax/" + DATA.formTo, {method: "POST",
+      const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 20000);
+      const r = await fetch("https://formsubmit.co/ajax/" + DATA.formTo, {method: "POST", signal: ac.signal,
         headers: {"Content-Type": "application/json", "Accept": "application/json"}, body: JSON.stringify(body)});
-      const j = await r.json().catch(() => ({}));
+      const j = await r.json().catch(() => ({})); clearTimeout(tm);
       if (!r.ok || String(j.success) === "false") throw new Error(j.message || r.status);
       EDIT.ops = []; EDIT.save();
       app.innerHTML = `<h1>شكراً لك</h1><p class="fok" tabindex="-1" id="s-ok">وصلت تغييراتك إلينا، وسنراجعها ونضيفها إلى الموقع بإذن الله.</p>
