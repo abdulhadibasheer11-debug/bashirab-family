@@ -521,8 +521,9 @@ function viewHome(){
       <div class="htop">${chip(P[ROOT], "hl")} <span class="cnt">الجد الأكبر</span></div>
       <div class="hsibs">${kidsOf(P[ROOT]).map(k => chip(k, k.id === MAIN ? "hl" : "")).join("")}</div>
       <div class="tvline"></div>
-      <div class="tgroup" style="text-align:center"><div class="tglbl">أبناء محمد بشير من زوجاته الثلاث: شُمَّة وكلتوم وآمنة الحاج</div>
-        <div class="tgrid" style="text-align:start">${kidsOf(root).map(k => tcardHtml(k, true)).join("")}</div></div>
+      <div class="tglbl" style="text-align:center;margin:4px 0 10px">أبناء محمد بشير من زوجاته الثلاث</div>
+      ${Object.entries(groups).map(([g, ks]) => `<div class="tgroup"><div class="tglbl" style="text-align:center">${esc(g.replace(/^الزوجة (\S+): /, "من الزوجة $1 "))}</div>
+        <div class="tgrid">${ks.map(k => tcardHtml(k, true)).join("")}</div></div>`).join("")}
       <p class="hnote">اضغط أي اسم لتنزل إلى أبنائه.</p>
       <div class="hmore"><a class="btn" href="#tree">افتح الشجرة كاملة</a></div>
     </div>
