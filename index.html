@@ -925,10 +925,11 @@ function viewFix(){
     body._template = "table";
     send.disabled = true; st.textContent = "جارٍ الإرسال…";
     try {
-      const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 20000);
+      var ac = new AbortController(), tm = setTimeout(() => ac.abort(), 90000);
+      var slow = setTimeout(() => { st.textContent = "الإرسال يستغرق أحياناً دقيقة، لا تغلق الصفحة…"; }, 6000);
       const r = await fetch("https://formsubmit.co/ajax/" + DATA.formTo, {method: "POST", signal: ac.signal,
         headers: {"Content-Type": "application/json", "Accept": "application/json"}, body: JSON.stringify(body)});
-      const j = await r.json().catch(() => ({}));
+      const j = await r.json().catch(() => ({})); clearTimeout(tm); clearTimeout(slow);
       if (!r.ok || String(j.success) === "false") throw new Error(j.message || r.status);
       form.innerHTML = `<p class="fok" tabindex="-1" id="f-ok">شكراً لك، وصلت رسالتك. سنضيفها في التحديث القادم بإذن الله.</p>
         <button class="btn ghost" type="button" onclick="viewFix()">إرسال رسالة أخرى</button>`;
@@ -1376,10 +1377,11 @@ function viewEdits(){
       "رقم التواصل": EDIT.phone || "—", _subject: "شجرة البشيراب: تعديلات من " + EDIT.who, _template: "table"};
     go.disabled = true; st.className = "emsg"; st.textContent = "جارٍ الإرسال…";
     try {
-      const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 20000);
+      var ac = new AbortController(), tm = setTimeout(() => ac.abort(), 90000);
+      var slow = setTimeout(() => { st.textContent = "الإرسال يستغرق أحياناً دقيقة، لا تغلق الصفحة…"; }, 6000);
       const r = await fetch("https://formsubmit.co/ajax/" + DATA.formTo, {method: "POST", signal: ac.signal,
         headers: {"Content-Type": "application/json", "Accept": "application/json"}, body: JSON.stringify(body)});
-      const j = await r.json().catch(() => ({})); clearTimeout(tm);
+      const j = await r.json().catch(() => ({})); clearTimeout(tm); clearTimeout(slow);
       if (!r.ok || String(j.success) === "false") throw new Error(j.message || r.status);
       EDIT.ops = []; EDIT.save();
       app.innerHTML = `<h1>شكراً لك</h1><p class="fok" tabindex="-1" id="s-ok">وصلت تغييراتك إلينا، وسنراجعها ونضيفها إلى الموقع بإذن الله.</p>
@@ -1391,7 +1393,7 @@ function viewEdits(){
       renderEditBar("edits");
     } catch (err) {
       go.disabled = false; st.className = "emsg err";
-      st.textContent = "لم تُرسل. تأكد من الاتصال بالإنترنت وحاول مرة أخرى، أو أرسلها عبر واتساب.";
+      clearTimeout(slow); st.textContent = err.name === "AbortError" ? "لم يصلنا تأكيد الإرسال. قد تكون وصلت رغم ذلك؛ إن لم تصل، أرسلها عبر واتساب." : "لم تُرسل. تأكد من الاتصال بالإنترنت وحاول مرة أخرى، أو أرسلها عبر واتساب.";
       if (!document.getElementById("s-wa")) { const a = document.createElement("a"); a.id = "s-wa"; a.className = "btn ghost"; a.target = "_blank";
         a.textContent = "أرسلها عبر واتساب"; a.href = "https://wa.me/?text=" + encodeURIComponent("تعديلات شجرة البشيراب من " + EDIT.who + ":\n" + lines.join("\n"));
         st.after(a); }
