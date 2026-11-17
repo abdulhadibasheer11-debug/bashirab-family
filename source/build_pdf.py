@@ -59,7 +59,7 @@ def gchips(p):
     """أبناء p كرقائق، مع ملخص أحفاده داخل كل رقاقة"""
     out = ""
     for c in children(p["id"]):
-        subs = [spouse_txt(c), E(c["group"].split(":")[0]) if c["group"] and p["gender"] == "ذكر" and p["id"] != "1.10.1.3" else "",
+        subs = [spouse_txt(c), E(c["group"].split(":")[0]) if c["group"] and not c["group"].startswith("الأم") and p["gender"] == "ذكر" and p["id"] != "1.10.1.3" else "",
                 E(c["notes"]) if c["notes"] in ("متزوجة", "غير متزوجة", "غير متزوج") else "",
                 kids_summary(c)]
         out += chip(c, subs)

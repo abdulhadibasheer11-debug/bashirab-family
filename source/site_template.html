@@ -650,7 +650,7 @@ function viewPerson(id){
   if (nd > p.kids.length) facts.push(`<span class="fact">${isF(p) ? "ذريتها" : "ذريته"} المسجلة: ${AR(nd)}</span>`);
   if (p.group && father && !(p.mother && P[p.mother])) {   // الأم ليست في الشجرة: نذكرها من «من أي زوجة»
     const [w, nmW] = p.group.split(":").map(x => x.trim());
-    facts.push(`<span class="fact">${isF(p)?"أمها":"أمه"}: ${nmW ? esc(nmW) + " (" + esc(w) + ")" : esc(w) + (w.startsWith("الزوجة") ? (isF(p)?" لأبيها":" لأبيه") : "")}</span>`);
+    facts.push(`<span class="fact">${isF(p)?"أمها":"أمه"}: ${nmW ? esc(nmW) + (w === "الأم" || w === "الزوجة" ? "" : " (" + esc(w) + ")") : esc(w) + (w.startsWith("الزوجة") ? (isF(p)?" لأبيها":" لأبيه") : "")}</span>`);
   }
   const parentsRow = [father ? chip(father) : (p.father_txt ? `<span class="chip m">${esc(p.father_txt)} <span class="sym">♂</span></span>` : ""),
                       mother ? chip(mother) : ""].filter(Boolean).join("");

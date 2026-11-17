@@ -386,7 +386,7 @@ P(f"{DY}.7", "محمد", M, father=DY, group="الزوجة الثانية", note
 P(f"{DY}.8", "فاطمة", F, father=DY, group="الزوجة الثانية")
 P(f"{DY}.8.1", "محمد", M, mother=f"{DY}.8", alias="تاجرتود")
 P(f"{DY}.9", "فرح", M, father=DY, group="الزوجة الثانية", dead=True)
-kids(f"{DY}.9", [("تومة", F), ("محمد", M)], father=f"{DY}.9")
+kids(f"{DY}.9", [("تومة", F), ("محمد", M)], father=f"{DY}.9", group="الأم: عائشة عبد الحي بكر")
 # محمد دياب زوج جارة بنت بشير وأبو أبنائها
 for _p in people:
     if _p["mother"] == "1.10.2":
