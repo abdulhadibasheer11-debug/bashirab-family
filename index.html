@@ -312,6 +312,11 @@ footer a{color:var(--teal2)}
 .oplist .ot{flex:1;min-width:200px;line-height:1.7}
 .oplist .ok{margin-inline-start:0;margin-inline-end:6px;font-size:12.5px;padding:1px 7px}
 @media(max-width:700px){#editbar .ewrap{font-size:14px}.ebtns button{font-size:15px}}
+#efab{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:19;background:#1d5c3f;color:#fff;border-radius:999px;padding:13px 24px;font-size:16.5px;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.28);text-decoration:none;white-space:nowrap;display:flex;gap:8px;align-items:center}
+#efab[hidden]{display:none}
+#efab .fabn{background:#fff;color:#1d5c3f;border-radius:999px;min-width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;padding:0 6px}
+body.hasfab #foot{padding-bottom:90px}
+@media(max-width:700px){#efab{bottom:calc(76px + env(safe-area-inset-bottom))}}
 </style>
 </head>
 <body>
@@ -322,13 +327,14 @@ footer a{color:var(--teal2)}
     <a href="#tree" data-v="tree">الشجرة</a>
     <a href="#relation" data-v="relation">صلة القرابة</a>
     <a href="#stats" data-v="stats">الإحصائيات</a>
-    <a href="#fix" data-v="fix">أرسل تصحيحاً</a>
+    <a href="#edit" data-v="edit">صحّح أو أضف</a>
     <a href="bashirab-family-book.pdf" download="شجرة عائلة البشيراب - الإصدار الأول 2026.pdf">تحميل الكتاب PDF</a>
   </nav>
   <div class="searchbox" id="topsearch"><input type="search" placeholder="ابحث عن اسم…" aria-label="ابحث عن اسم في العائلة" autocomplete="off"><div class="results"></div></div>
 </div></header>
 <div id="live" class="sr-only" aria-live="polite"></div>
 <div id="editbar"></div>
+<a id="efab" href="#edits" hidden></a>
 <div id="mebar"></div>
 <main id="app" tabindex="-1"></main>
 <footer id="foot"></footer>
@@ -342,7 +348,7 @@ footer a{color:var(--teal2)}
 <div id="moresheet"><div class="sheet" role="menu">
   <div class="grab"></div>
   <a href="#stats">الإحصائيات</a>
-  <a href="#fix">أرسل تصحيحاً أو إضافة</a>
+  <a href="#edit">صحّح أو أضف إلى الشجرة</a>
   <a href="bashirab-family-book.pdf" download="شجرة عائلة البشيراب - الإصدار الأول 2026.pdf">تحميل كتاب العائلة PDF</a>
   <a href="#" id="moreme">اعرف صلتك بالعائلة</a>
 </div></div>
@@ -570,7 +576,7 @@ function viewHome(){
     <h2>الكتاب والتصحيحات</h2>
     <div class="chips">
       <a class="btn" href="${DATA.pdf}" download="${esc(DATA.pdfName)}">تحميل كتاب العائلة PDF</a>
-      <a class="btn ghost" href="#fix">أرسل تصحيحاً أو إضافة</a>
+      <a class="btn ghost" href="#edit">صحّح أو أضف إلى الشجرة</a>
     </div>
     <p class="empty" style="margin:8px 0 0">إن وجدت خطأً أو اسماً ناقصاً فأرسله من صفحة التصحيح، وسنضيفه في التحديث القادم.</p>
     <h2>دليل الرموز</h2>
@@ -635,7 +641,7 @@ function viewPerson(id){
         ${meBox(p)}
       </div>
       <div class="chips"><a class="btn ghost" href="#relation" onclick="REL.a='${p.id}'">صلة القرابة مع…</a>
-      <a class="btn ghost" href="#fix" onclick="FIX.about='${p.id}'">أرسل تصحيحاً عن ${esc(p.name)}</a></div>
+      ${EDIT.on ? "" : `<a class="btn ghost" href="#edit" onclick="EDIT.target='${p.id}'">صحّح أو أضف عن ${esc(p.name)}</a>`}</div>
     </div></div>
     <section class="panel" aria-label="الأسرة"><div class="mini">
       ${parentsRow ? `<div class="row"><span class="sr-only">الوالدان:</span>${parentsRow}</div><div class="vline"></div>` : ""}
@@ -647,7 +653,7 @@ function viewPerson(id){
         ${kids.length ? Object.entries(kg).map(([g, ks]) => (g ? `<div class="grouplbl">${esc(g)}</div>` : "") +
           `<div class="chips">${ks.map(k => chip(k)).join("")}</div>`).join("") : ""}
         ${p.unknown ? `<div class="chips" style="margin-top:6px">${unk(p.unknown)}</div>
-          <div class="askbox">هل تعرف أسماءهم؟ <a href="#fix" onclick="FIX.about='${p.id}'">أرسلها لنا</a> لنضيفها في التحديث القادم.</div>` : ""}
+          <div class="askbox">هل تعرف أسماءهم؟ <a href="#edit" onclick="EDIT.target='${p.id}'">أضفها هنا</a>.</div>` : ""}
         ${!kids.length && !p.unknown ? `<p class="empty">لا يوجد أبناء مسجلون.</p>` : ""}
       </section>
       <section class="panel"><h2 style="margin-top:0">الإخوة ${sibs.length ? `<span class="cnt">(${AR(sibs.length)})</span>` : ""}</h2>
@@ -899,8 +905,8 @@ function drawRel(){
 const FIX = {about: null};
 function viewFix(){
   const about = FIX.about && P[FIX.about];
-  app.innerHTML = `<h1>أرسل تصحيحاً أو إضافة</h1>
-    <p class="lead">اكتب ما تريد تصحيحه أو إضافته، وستصل رسالتك إلينا لنضيفها في التحديث القادم بإذن الله.</p>
+  app.innerHTML = `<h1>رسالة عامة</h1>
+    <p class="lead">لتصحيح اسم أو إضافة أبناء استخدم <a href="#edit">صفحة التصحيح والإضافة</a> فهي أسهل. وهنا تكتب لنا أي شيء آخر.</p>
     <form class="panel fixform" id="fixform" novalidate>
       <div class="fld"><label for="f-name">اسمك</label>
         <input id="f-name" name="الاسم" required autocomplete="name"></div>
@@ -1067,8 +1073,9 @@ function renderRoute(vt){
   if (v === "person" && EDIT.on) editPersonUI(h.slice(2).replace(/-/g, "."));
   document.getElementById("topsearch").style.display = v === "home" ? "none" : "";
   document.body.dataset.view = v;
-  document.querySelectorAll("#nav a, #tabbar a").forEach(a => { a.classList.toggle("on", a.dataset.v === v); a.toggleAttribute("aria-current", a.dataset.v === v); });
-  document.getElementById("tabmore").classList.toggle("on", v === "stats" || v === "fix");
+  const vv = v === "edits" ? "edit" : v;
+  document.querySelectorAll("#nav a, #tabbar a").forEach(a => { a.classList.toggle("on", a.dataset.v === vv); a.toggleAttribute("aria-current", a.dataset.v === vv); });
+  document.getElementById("tabmore").classList.toggle("on", ["stats", "fix", "edit", "edits"].includes(v));
   app.classList.remove("fade"); if (!vt) { void app.offsetWidth; app.classList.add("fade"); }
   const h1 = app.querySelector("h1");
   document.title = (h1 && v !== "home" ? h1.textContent.replace(/رحم(ه|ها) الله/,"").trim() + " · " : "") + "عائلة البشيراب";
@@ -1111,13 +1118,13 @@ function showA2HS(){
   const go = document.getElementById("a2hsgo");
   if (go) go.onclick = async () => { A2HS_EVT.prompt(); try { await A2HS_EVT.userChoice; } catch (e) {} A2HS_EVT = null; close(); };
 }
-document.getElementById("foot").innerHTML = `عائلة البشيراب · <a href="#" onclick="CHOOSING=true;setTimeout(()=>{renderMeBar('home');document.getElementById('mein').focus()},30)">اعرف صلتك بالعائلة</a> · <a href="#fix">أرسل تصحيحاً أو إضافة</a> · <a href="${DATA.pdf}" download="${esc(DATA.pdfName)}">تحميل الكتاب PDF</a>`;
+document.getElementById("foot").innerHTML = `عائلة البشيراب · <a href="#" onclick="CHOOSING=true;setTimeout(()=>{renderMeBar('home');document.getElementById('mein').focus()},30)">اعرف صلتك بالعائلة</a> · <a href="#edit">صحّح أو أضف إلى الشجرة</a> · <a href="${DATA.pdf}" download="${esc(DATA.pdfName)}">تحميل الكتاب PDF</a>`;
 // ---------- وضع التعديل: يُفتح برابط ‎#edit‎ فقط، ولا يظهر منه شيء لعامة الزوار.
 // التعديلات تُحفظ في جهاز المعدِّل وتظهر له فوراً، ثم يرسلها فتصل إلى صاحب الموقع ليراجعها قبل أن تُعتمد.
 const ORIG = {}; DATA.people.forEach(p => ORIG[p.id] = JSON.parse(JSON.stringify(p)));
 const EFIELDS = ["name", "alias", "gender", "spouse", "dead", "notes"];
 const EDIT = {
-  on: false, ops: [], who: "", phone: "",
+  on: false, ops: [], who: "", phone: "", target: null,
   load(){ try { this.on = localStorage.getItem("bashirab_edit") === "1";
     this.ops = JSON.parse(localStorage.getItem("bashirab_ops") || "[]");
     this.who = localStorage.getItem("bashirab_editor") || ""; this.phone = localStorage.getItem("bashirab_editor_tel") || ""; } catch (e) {} },
@@ -1149,36 +1156,41 @@ function refreshPerson(id){ viewPerson(id); editPersonUI(id); renderEditBar("per
 
 // ---------- شريط التعديل أعلى الصفحات
 function renderEditBar(v){
-  const bar = document.getElementById("editbar");
+  const bar = document.getElementById("editbar"), fab = document.getElementById("efab");
+  const showFab = EDIT.on && EDIT.ops.length && v !== "edits" && v !== "edit";
+  fab.hidden = !showFab; document.body.classList.toggle("hasfab", !!showFab);
+  if (showFab) fab.innerHTML = `مراجعة وإرسال <span class="fabn">${AR(EDIT.ops.length)}</span>`;
   if (!EDIT.on || v === "edit") { bar.innerHTML = ""; return; }
   const n = EDIT.ops.length;
   bar.innerHTML = `<div class="eline"><div class="ewrap"><b>وضع التعديل</b>
     <span>${n ? `لديك ${AR(n)} ${n === 1 ? "تغيير" : n === 2 ? "تغييران" : n <= 10 ? "تغييرات" : "تغييراً"} لم ${n === 2 ? "يُرسلا" : "تُرسل"} بعد` : "اختر أي شخص لتعدّل بياناته أو تضيف أبناءه"}</span>
     <span style="flex:1"></span>
-    ${n && v !== "edits" ? `<a class="btn" href="#edits">مراجعة وإرسال</a>` : ""}
     <a class="btn ghost" href="#edit">${n ? "المساعدة" : "المساعدة والخروج"}</a></div></div>`;
 }
 
 // ---------- صفحة البداية: ‎#edit‎
 function viewEditStart(){
-  const n = EDIT.ops.length;
-  app.innerHTML = `<h1>صفحة التعديل</h1>
+  if (EDIT.target && EDIT.on && EDIT.who && P[EDIT.target]) { const t = EDIT.target; EDIT.target = null; location.replace(hashOf(t)); return; }
+  const n = EDIT.ops.length, tg = EDIT.target && P[EDIT.target];
+  app.innerHTML = `<h1>صحّح أو أضف إلى الشجرة</h1>
     <div class="panel editp">
       <p style="margin-top:0;font-size:16.5px;line-height:1.9">من هنا تستطيع تصحيح أي اسم أو إضافة أبناء وبنات لأي شخص في الشجرة.</p>
       <ol style="font-size:16px;line-height:2;margin:0 0 6px;padding-inline-start:22px">
         <li>ابحث عن الشخص بالأسفل، أو تصفّح الشجرة واضغط على اسمه.</li>
         <li>في صفحته ستجد أزرار: <b>تعديل البيانات</b>، و<b>أضف ابناً أو بنتاً</b>.</li>
-        <li>عندما تنتهي اضغط <b>مراجعة وإرسال</b> في أعلى الصفحة.</li>
+        <li>عندما تنتهي اضغط زر <b>مراجعة وإرسال</b> الأخضر أسفل الشاشة.</li>
       </ol>
       <p style="color:var(--muted);margin:6px 0 0">تعديلاتك تظهر لك فوراً، ولا تظهر لبقية العائلة إلا بعد مراجعتها.</p>
     </div>
     <div class="panel"><div class="eform" id="startf" style="margin:0">
       <div class="fld"><label for="e-who">اسمك</label><input id="e-who" value="${esc(EDIT.who)}" autocomplete="name" placeholder="حتى نعرف من أرسل التعديل"></div>
-      <div class="fld"><label for="e-find">ابحث عن الشخص الذي تريد تعديله</label>
+      ${tg ? `<p style="margin:0;font-size:16px">ستصحّح أو تضيف عن: <b>${esc(shortName(tg, 4))}</b></p>` : ""}
+      <div class="fld" ${tg ? "hidden" : ""}><label for="e-find">ابحث عن الشخص الذي تريد تعديله</label>
         <div class="searchbox" id="esearch" style="max-width:none"><input id="e-find" type="search" placeholder="اكتب الاسم…" autocomplete="off"><div class="results"></div></div></div>
       <div class="row3"><button class="btn" type="button" id="e-go">${EDIT.on ? "متابعة التعديل" : "ابدأ التعديل"}</button>
-        <a class="btn ghost" href="#tree" id="e-tree">تصفّح الشجرة</a></div>
+        ${tg ? "" : `<a class="btn ghost" href="#tree" id="e-tree">تصفّح الشجرة</a>`}</div>
       <p class="emsg err" id="e-st"></p>
+      <p style="margin:0;color:var(--muted)">لشيء آخر لا يخص شخصاً بعينه: <a href="#fix">اكتب لنا رسالة عامة</a></p>
     </div></div>
     ${EDIT.on ? `<div class="panel"><h2 style="margin-top:0;font-size:18px">الخروج من وضع التعديل</h2>
       ${n ? `<p style="margin:0 0 10px">لديك ${AR(n)} تغييرات لم تُرسل بعد. إذا خرجت ستُحذف.</p>
@@ -1189,8 +1201,8 @@ function viewEditStart(){
   const start = () => { if (!who.value.trim()) { st.textContent = "اكتب اسمك أولاً من فضلك."; who.focus(); return false; }
     EDIT.who = who.value.trim(); EDIT.on = true; EDIT.save(); return true; };
   wireSearch(document.getElementById("esearch"), pp => { if (start()) location.hash = hashOf(pp.id); });
-  document.getElementById("e-go").onclick = () => { if (start()) location.hash = "#tree"; };
-  document.getElementById("e-tree").onclick = e => { if (!start()) e.preventDefault(); };
+  document.getElementById("e-go").onclick = () => { if (!start()) return; const t = EDIT.target; EDIT.target = null; location.hash = t && P[t] ? hashOf(t) : "#tree"; };
+  const et = document.getElementById("e-tree"); if (et) et.onclick = e => { if (!start()) e.preventDefault(); };
   const q = document.getElementById("e-quit");
   if (q) q.onclick = () => { EDIT.on = false; EDIT.ops = []; EDIT.save(); location.hash = ""; location.reload(); };
 }
