@@ -1496,6 +1496,8 @@ const CNT = "https://api.counterapi.dev/v1/bashirab-family-ab11/";
     const today = new Date().toISOString().slice(0, 10);
     if (!localStorage.getItem("bashirab_dev")) { localStorage.setItem("bashirab_dev", today); fetch(CNT + "devices/up").catch(() => {}); }
     if (localStorage.getItem("bashirab_day") !== today) { localStorage.setItem("bashirab_day", today); fetch(CNT + "visits/up").catch(() => {}); }
+    // كل فتح للموقع (مرة لكل نافذة؛ التنقل داخل الموقع أو تحديث الصفحة لا يُعاد حسابه)
+    if (!sessionStorage.getItem("bashirab_open")) { sessionStorage.setItem("bashirab_open", "1"); fetch(CNT + "opens/up").catch(() => {}); }
   } catch (e) {}
 })();
 async function cntGet(path){
@@ -1508,7 +1510,7 @@ const numOf = j => { if (j == null) return null; if (typeof j === "number") retu
 function listOf(j){
   const arr = Array.isArray(j) ? j : Array.isArray(j && j.data) ? j.data : Array.isArray(j && j.counts) ? j.counts : [];
   return arr.map(it => { let d = "", n = null;
-    for (const [k, v] of Object.entries(it)) { if (typeof v === "number" && n === null) n = v; else if (typeof v === "string" && /\d{4}-\d{2}-\d{2}/.test(v) && !d) d = v.slice(0, 10); }
+    for (const [k, v] of Object.entries(it)) { if (typeof v === "number" && n === null) n = v; else if (typeof v === "string" && /\d{4}-\d{2}-\d{2}/.test(v) && !d) d = v; }
     return {d, n}; }).filter(x => x.d && x.n !== null);
 }
 
@@ -1540,9 +1542,9 @@ function viewAdmin(){
       <li><a href="#a-find">البحث بالرقم والاسم</a></li><li><a href="#a-log">سجل الإضافات</a></li><li><a href="#a-files">الملفات</a></li></ul></nav>
 
     <section class="panel" id="a-vis" tabindex="-1"><h2>الزوار</h2>
-      <p id="v-sum" role="status">جارٍ جلب الأرقام…</p>
+      <ul class="anums" id="v-sum" role="status"><li>جارٍ جلب الأرقام…</li></ul>
       <div id="v-days"></div>
-      <p class="muted">العدّ بدأ في ١٨ نوفمبر ٢٠٢٦. «الأجهزة» عدد الجوالات والأجهزة المختلفة التي فتحت الموقع (يقارب عدد الأشخاص). «الزيارات» تُحسب مرة واحدة لكل جهاز في اليوم مهما فتح من صفحات.</p></section>
+      <p class="muted">العدّ بدأ في ١٨ نوفمبر ٢٠٢٦، والأيام بتوقيت غرينتش. «الأشخاص» عدد الجوالات والأجهزة المختلفة التي فتحت الموقع، فكل جهاز يُحسب مرة واحدة مهما تكرر دخوله. «مرات الفتح» كل مرة يُفتح فيها الموقع (التنقل بين صفحاته لا يُحسب فتحاً جديداً).</p></section>
 
     <section class="panel" id="a-num" tabindex="-1"><h2>الأرقام</h2>
       <ul class="anums">
@@ -1604,15 +1606,26 @@ function viewAdmin(){
   // الزوار
   (async () => {
     const sum = document.getElementById("v-sum"), days = document.getElementById("v-days");
-    try {
-      const [dv, vs] = await Promise.all([cntGet("devices/"), cntGet("visits/")]);
-      const a = numOf(dv), b = numOf(vs);
-      sum.innerHTML = `الأجهزة: <b>${a == null ? "؟" : AR(a)}</b> · الزيارات: <b>${b == null ? "؟" : AR(b)}</b>`;
-    } catch (e) { sum.textContent = "لم يكتمل جلب الأرقام. قد لا يكون أحد زار الموقع بعد منذ إضافة العدّاد، أو أن الاتصال انقطع؛ جرّب لاحقاً."; }
-    try {
-      const rows = listOf(await cntGet("visits/list?group_by=day&order_by=desc")).slice(0, 14);
-      if (rows.length) days.innerHTML = T("الزيارات في آخر الأيام", ["اليوم", "الزيارات"], rows.map(r => `<tr><th scope="row">${esc(r.d)}</th><td>${AR(r.n)}</td></tr>`));
-    } catch (e) {}
+    const get = path => cntGet(path).catch(() => null);
+    const [dv, op, dvL, vsL, opL, opH] = await Promise.all([get("devices/"), get("opens/"),
+      get("devices/list?group_by=day&order_by=desc"), get("visits/list?group_by=day&order_by=desc"),
+      get("opens/list?group_by=day&order_by=desc"), get("opens/list?group_by=hour&order_by=desc")]);
+    const a = numOf(dv), b = numOf(op);
+    if (a == null && b == null) { sum.innerHTML = "<li>لم يكتمل جلب الأرقام. قد لا يكون أحد فتح الموقع بعد منذ إضافة العدّاد، أو أن الاتصال انقطع؛ جرّب لاحقاً.</li>"; return; }
+    const hrs = opH ? listOf(opH) : [], nowH = new Date().toISOString().slice(0, 13);
+    const thisHour = hrs.filter(r => r.d.slice(0, 13) === nowH).reduce((t, r) => t + r.n, 0);
+    const today = new Date().toISOString().slice(0, 10);
+    const mapOf = j => { const m = {}; (j ? listOf(j) : []).forEach(r => m[r.d.slice(0, 10)] = (m[r.d.slice(0, 10)] || 0) + r.n); return m; };
+    const O = mapOf(opL), V = mapOf(vsL), D = mapOf(dvL);
+    const times = k => k === 0 ? "ولا مرة" : plural(k, "مرة واحدة", "مرتين", "مرات", "مرة");
+    const people = k => k === 0 ? "لا أحد" : plural(k, "شخص واحد", "شخصين", "أشخاص", "شخصاً");
+    sum.innerHTML = `<li>الأشخاص الذين فتحوا الموقع: <b>${a == null ? "؟" : AR(a)}</b></li>
+      <li>مرات فتح الموقع كلها: <b>${b == null ? "؟" : AR(b)}</b>${a && b ? ` · بمعدل <b>${AR(Math.round(b / a * 10) / 10)}</b> مرة لكل شخص` : ""}</li>
+      <li>اليوم: فُتح الموقع <b>${times(O[today] || 0)}</b>، من <b>${people(V[today] || 0)}</b></li>
+      <li>في الساعة الحالية: فُتح الموقع <b>${times(thisHour)}</b></li>`;
+    const ds = [...new Set([...Object.keys(O), ...Object.keys(V), ...Object.keys(D)])].sort().reverse().slice(0, 14);
+    if (ds.length) days.innerHTML = T("آخر الأيام", ["اليوم", "مرات الفتح", "الأشخاص", "أشخاص جدد"],
+      ds.map(d => `<tr><th scope="row">${esc(d)}</th><td>${AR(O[d] || 0)}</td><td>${AR(V[d] || 0)}</td><td>${AR(D[d] || 0)}</td></tr>`));
   })();
 }
 
