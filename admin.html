@@ -547,8 +547,8 @@ function descendants(id){ // كل الذرية المسجلة (بلا تكرار
 }
 function depthOf(p){ let d = 1, q = p; while ((q.father && P[q.father]) || (q.mother && P[q.mother])) { q = P[q.father] || P[q.mother]; d++; } return d; }
 function branchGens(id){ const base = depthOf(P[id]); let m = base; descendants(id).forEach(k => m = Math.max(m, depthOf(P[k]))); return m - base + 1; }
-const DOCUMENTED = ["1.10", "1.12", "1.11", "1.9", "1.1", "1.5", "1.6", "1.4", "1.2"];
-const BCOL = {"1.10":"#2c6a7d","1.12":"#b8901c","1.11":"#5b8c3a","1.9":"#8a5a9e","1.1":"#c0603a","1.5":"#3a7f86","1.6":"#9b4d5f","1.4":"#6b7a2f","1.2":"#4f6aa8"};
+const DOCUMENTED = ["1.5", "1.6", "1.1", "1.2", "1.4", "1.9", "1.10", "1.11", "1.12"];   // بترتيب الشجرة: أبناء شُمَّة ثم كلتوم ثم آمنة الحاج
+const BCOL = {"1":"#2c6a7d","0.4":"#7a6a3a","0.3":"#5d7f9b","0.5":"#8b5e3c","0.8":"#4c7d63","0.6":"#a0527a","0.7":"#6e6aa8","0.9":"#9a7b2f","0.10":"#5f8f8a","0.2":"#6b7a2f","1.10":"#2c6a7d","1.12":"#b8901c","1.11":"#5b8c3a","1.9":"#8a5a9e","1.1":"#c0603a","1.5":"#3a7f86","1.6":"#9b4d5f","1.4":"#6b7a2f","1.2":"#4f6aa8"};
 const BNEUTRAL = "#97a2a6";
 const BR_CACHE = {};
 function branchOf(id){ // ابن محمد بشير الذي ينتمي إليه الشخص (ذرية طمبل من فرع عجائب)
@@ -557,6 +557,7 @@ function branchOf(id){ // ابن محمد بشير الذي ينتمي إليه 
   while (q) {
     if (q.id === "0.2.1") { r = "1.4"; break; }
     if (q.father === MAIN || (q.mother === MAIN)) { r = q.id; break; }
+    if (q.father === ROOT && q.id !== MAIN) { r = q.id; break; }
     q = upParent(q);
   }
   return BR_CACHE[id] = r;
@@ -573,18 +574,22 @@ const plural = (n, one, two, few, many) => n === 1 ? one : n === 2 ? two : n <= 
 const app = document.getElementById("app");
 function viewHome(){
   const root = P[MAIN];
-  const groups = {};
+  const groups = {}, g0 = {};
   kidsOf(root).forEach(k => (groups[k.group || ""] ||= []).push(k));
+  kidsOf(P[ROOT]).forEach(k => (g0[k.group || ""] ||= []).push(k));
+  const sibIds = kidsOf(P[ROOT]).filter(k => k.id !== MAIN && descendants(k.id).size).map(k => k.id);
   const documented = new Set(DOCUMENTED);
   const dead = DATA.people.filter(p=>p.dead).length;
   const gens = Math.max(...DATA.people.map(depthOf));
-  const cards = DOCUMENTED.map(id => {
+  const bcardHtml = id => {
     const b = P[id], n = descendants(id).size, g = branchGens(id);
     return `<a class="bcard bc" style="--bc:${bcol(id)}" href="#tree-${id.replace(/\./g, "-")}">
-      <div class="bn">فرع ${esc(b.name)}</div><div class="bs">${isF(b) ? "بنت" : "ابن"} الجد محمد بشير${b.dead ? (isF(b) ? "، رحمها الله" : "، رحمه الله") : ""}</div>
+      <div class="bn">فرع ${esc(nm(b))}</div><div class="bs">${isF(b) ? "بنت" : "ابن"} ${b.father === ROOT ? "الجد الأكبر بشير" : "الجد محمد بشير"}${b.dead ? (isF(b) ? "، رحمها الله" : "، رحمه الله") : ""}</div>
       <div class="bnum"><span><b>${AR(n)}</b>من الذرية</span><span><b>${AR(g)}</b>أجيال</span><span><b>${AR(b.kids.length)}</b>أبناء</span></div>
       <div class="bkids">${kidsOf(b).slice(0, 6).map(k => esc(k.name)).join("، ")}${b.kids.length > 6 ? "…" : ""}</div></a>`;
-  }).join("");
+  };
+  const cards = DOCUMENTED.map(bcardHtml).join("");
+  const sibCards = sibIds.map(bcardHtml).join("");
   const others = kidsOf(root).filter(k => !documented.has(k.id));
   const me = ME.get();
   app.innerHTML = `
@@ -603,22 +608,28 @@ function viewHome(){
           <g fill="#dbe8ec"><rect x="22" y="230" width="36" height="32" rx="9"/><rect x="82" y="230" width="36" height="32" rx="9"/><rect x="262" y="230" width="36" height="32" rx="9"/><rect x="322" y="230" width="36" height="32" rx="9"/></g>
         </svg>
       </div>
-      <div class="searchbox hero-search" id="herosearch"><input type="search" placeholder="${me ? "ابحث عن أي اسم في العائلة…" : "ابحث عن اسمك…"}" aria-label="ابحث عن اسم في العائلة" autocomplete="off"><div class="results"></div></div>
+      <div class="searchbox hero-search" id="herosearch"><input type="search" placeholder="ابحث عن أي اسم في العائلة…" aria-label="ابحث عن اسم في العائلة" autocomplete="off"><div class="results"></div></div>
       <div id="heroask"></div>
-      <div class="hero-links"><a href="#tree">تصفّح الشجرة</a><a href="#relation">صلة القرابة</a><a href="#stats">الإحصائيات</a></div>
+      <div class="hero-links"><a href="#tree">تصفّح الشجرة</a><a href="#relation">صلة القرابة</a>${me ? "" : `<a href="#" id="heroMe">اعرف صلتك بالعائلة</a>`}<a href="#stats">الإحصائيات</a></div>
     </section>
     <h2>شجرة العائلة</h2>
     <div class="hometree">
       <div class="htop">${chip(P[ROOT], "hl")} <span class="cnt">الجد الأكبر</span></div>
-      <div class="hsibs">${kidsOf(P[ROOT]).map(k => chip(k, k.id === MAIN ? "hl" : "")).join("")}</div>
       <div class="tvline"></div>
-      <div class="tglbl" style="text-align:center;margin:4px 0 10px">أبناء محمد بشير من زوجاته الثلاث</div>
+      <div class="tglbl" style="text-align:center;margin:4px 0 10px">أبناء الجد بشير</div>
+      ${Object.entries(g0).map(([g, ks]) => `<div class="tgroup"><div class="tglbl" style="text-align:center">${esc(g ? g.replace(/^الزوجة (\S+)$/, "من الزوجة $1") : "لم يُعرف من أي الزوجتين")}</div>
+        <div class="tgrid">${ks.map(k => tcardHtml(k, true)).join("")}</div></div>`).join("")}
+      <div class="tvline"></div>
+      <div class="tglbl" style="text-align:center;margin:14px 0 10px">أبناء محمد بشير بن بشير من زوجاته الثلاث</div>
       ${Object.entries(groups).map(([g, ks]) => `<div class="tgroup"><div class="tglbl" style="text-align:center">${esc(g.replace(/^الزوجة (\S+): /, "من الزوجة $1 "))}</div>
         <div class="tgrid">${ks.map(k => tcardHtml(k, true)).join("")}</div></div>`).join("")}
       <p class="hnote">اضغط أي اسم لتنزل إلى أبنائه.</p>
       <div class="hmore"><a class="btn" href="#tree">افتح الشجرة كاملة</a></div>
     </div>
     <h2>فروع العائلة</h2>
+    <p class="empty" style="margin:0 0 8px">فروع أبناء الجد الأكبر بشير:</p>
+    <div class="bgrid">${bcardHtml(MAIN)}${sibCards}</div>
+    <p class="empty" style="margin:14px 0 8px">فروع أبناء محمد بشير:</p>
     <div class="bgrid">${cards}</div>
     ${others.length ? `<p class="empty" style="margin:12px 0 4px">فروع تُجمع بياناتها:</p>
       <div class="chips">${others.map(k => chip(k)).join("")}</div>` : ""}
@@ -639,7 +650,7 @@ function viewHome(){
     </div>`;
   wireSearch(document.getElementById("herosearch"), (pp, inp) => {
     inp.value = "";
-    if (ME.get()) { location.hash = hashOf(pp.id); return; }
+    location.hash = hashOf(pp.id); return;
     const ask = document.getElementById("heroask");
     ask.innerHTML = `<div class="askme"><b>هل أنت ${esc(shortName(pp, 5))}؟</b>
       <div class="chips"><button class="btn" type="button" id="yesme">نعم، هذا أنا</button>
@@ -648,6 +659,8 @@ function viewHome(){
     document.getElementById("yesme").onclick = () => { ME.set(pp.id); location.hash = hashOf(pp.id); };
     document.getElementById("yesme").focus();
   });
+  const hm = document.getElementById("heroMe");
+  if (hm) hm.onclick = e => { e.preventDefault(); document.getElementById("moreme").click(); };
 }
 
 function viewPerson(id){
@@ -781,7 +794,7 @@ function viewTreeList(at){
 
 // ---------- الإحصائيات
 function viewStats(){
-  const root = P[MAIN], rk = kidsOf(root).filter(k => k.kids.length);
+  const root = P[MAIN], rk = [...kidsOf(root), ...kidsOf(P[ROOT]).filter(k => k.id !== MAIN && k.id !== "0.2")].filter(k => k.kids.length);
   const bc = rk.map(k => [k, descendants(k.id).size]).sort((x, y) => y[1] - x[1]);
   const mx = Math.max(...bc.map(x => x[1]));
   const byGen = {}; DATA.people.forEach(p => { const d = depthOf(p); byGen[d] = (byGen[d] || 0) + 1; });
