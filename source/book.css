@@ -89,3 +89,6 @@ p { font-size: 12.5px; line-height: 1.9; margin: 4px 0; }
 .chip.big { font-size: 13px; padding: 5px 12px; }
 .chip.big .csub { font-size: 9.5px; color: #56656b; }
 .card .chip, .card .node { white-space: normal; }
+
+.intro-notes{margin:4px 0 0;padding-inline-start:18px}
+.intro-notes li{margin:0 0 4px;line-height:1.8;font-size:12.5px}
