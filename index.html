@@ -546,8 +546,8 @@ function descendants(id){ // كل الذرية المسجلة (بلا تكرار
 }
 function depthOf(p){ let d = 1, q = p; while ((q.father && P[q.father]) || (q.mother && P[q.mother])) { q = P[q.father] || P[q.mother]; d++; } return d; }
 function branchGens(id){ const base = depthOf(P[id]); let m = base; descendants(id).forEach(k => m = Math.max(m, depthOf(P[k]))); return m - base + 1; }
-const DOCUMENTED = ["1.5", "1.6", "1.1", "1.2", "1.4", "1.9", "1.10", "1.11", "1.12"];   // بترتيب الشجرة: أبناء شُمَّة ثم كلتوم ثم آمنة الحاج
-const BCOL = {"1":"#2c6a7d","0.4":"#7a6a3a","0.3":"#5d7f9b","0.5":"#8b5e3c","0.8":"#4c7d63","0.6":"#a0527a","0.7":"#6e6aa8","0.9":"#9a7b2f","0.10":"#5f8f8a","0.2":"#6b7a2f","1.10":"#2c6a7d","1.12":"#b8901c","1.11":"#5b8c3a","1.9":"#8a5a9e","1.1":"#c0603a","1.5":"#3a7f86","1.6":"#9b4d5f","1.4":"#6b7a2f","1.2":"#4f6aa8"};
+const DOCUMENTED = ["1.5", "1.6", "1.8", "1.1", "1.2", "1.4", "1.9", "1.10", "1.11", "1.12"];   // بترتيب الشجرة: أبناء شُمَّة ثم كلتوم ثم آمنة الحاج
+const BCOL = {"1":"#2c6a7d","0.4":"#7a6a3a","0.3":"#5d7f9b","0.5":"#8b5e3c","0.8":"#4c7d63","0.6":"#a0527a","0.7":"#6e6aa8","0.9":"#9a7b2f","0.10":"#5f8f8a","0.2":"#6b7a2f","1.10":"#2c6a7d","1.12":"#b8901c","1.11":"#5b8c3a","1.9":"#8a5a9e","1.1":"#c0603a","1.5":"#3a7f86","1.6":"#9b4d5f","1.4":"#6b7a2f","1.2":"#4f6aa8","1.8":"#7d6b9e"};
 const BNEUTRAL = "#97a2a6";
 const BR_CACHE = {};
 function branchOf(id){ // ابن محمد بشير الذي ينتمي إليه الشخص (ذرية طمبل من فرع عجائب)
@@ -589,7 +589,7 @@ function viewHome(){
   };
   const cards = DOCUMENTED.map(bcardHtml).join("");
   const sibCards = sibIds.map(bcardHtml).join("");
-  const others = kidsOf(root).filter(k => !documented.has(k.id));
+  const others = kidsOf(root).filter(k => !documented.has(k.id) && !/مفقود|ليس لها أبناء|ليس له أبناء/.test(k.notes || ""));
   const me = ME.get();
   app.innerHTML = `
     <section class="hero">
