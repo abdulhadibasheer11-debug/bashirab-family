@@ -457,6 +457,29 @@ section[tabindex="-1"]:focus{outline:none}
 .bar .bt{background:#eef2f3;border-radius:99px;height:12px;overflow:hidden}.bar .bt i{display:block;height:100%;border-radius:99px}
 .bar b{color:var(--teal);text-align:end}
 .ares{margin-top:12px}.ares p{margin:4px 0 8px;line-height:1.8}
+
+/* الواجهة المختصرة ورأس الشجرة */
+.hero.c{padding:16px 18px 16px;margin-bottom:14px}
+.hc-top{display:flex;align-items:baseline;gap:6px 12px;flex-wrap:wrap}
+.hero.c .hero-t{font-size:32px}
+.hero.c .hero-sub{margin:0;font-size:15px}
+.hero.c .hero-search{margin-top:12px}
+.hero.c .hero-search input{padding:12px 16px}
+.hero-me{display:inline-block;margin-top:10px;color:#f5e6b0;font-size:15px}
+.tbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;min-height:30px}
+.tbar .tpath{margin:0}
+.thint{font-size:14.5px;color:var(--muted)}
+.tlist{flex:none;font-size:14px;color:var(--teal2);text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 12px}
+h1.thn{font-family:inherit;color:inherit;margin:0;font-size:24px}
+.thead.root{display:flex;flex-direction:column;align-items:center;gap:2px;max-width:340px;text-decoration:none;color:var(--teal);background:linear-gradient(160deg,#fbf4dc,#f3e3a8);border:2px solid #e2c56a;box-shadow:0 6px 18px rgba(184,144,28,.18)}
+.thead.root .thn{font-family:Amiri,serif;font-size:32px;line-height:1.2}
+.thead.root .ths{color:#7a6420}
+.tcard{min-height:54px}
+.tcard .tk{display:flex;align-items:center;justify-content:space-between}
+.tgo{font-size:20px;line-height:1;color:var(--muted)}
+.legend1{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:14px;color:var(--muted);margin:18px 0 0}
+.lg{display:inline-block;width:16px;height:12px;border-radius:4px;border:1.5px solid;margin-inline-end:-6px;vertical-align:middle}
+.lg.m{border-color:var(--m);background:var(--m-bg)}.lg.f{border-color:var(--f);background:var(--f-bg)}.lg.dd{border-color:#97a2a6;background:#eceeee}.lg.leaf{border-style:dashed;border-color:var(--m)}
 </style>
 </head>
 <body>
@@ -663,46 +686,23 @@ function tcardHtml(k, colored){
   const n = k.kids.length, d = descendants(k.id).size;
   return `<a class="tcard ${G[k.gender]} ${k.dead ? "dd" : ""} ${n ? "" : "leaf"} ${colored ? "bc" : ""}" data-id="${k.id}" ${colored ? `style="--bc:${bcol(k.id)}"` : ""} href="${n ? tid(k.id) : EDIT.on ? eid(k.id) : hashOf(k.id)}">
       <span class="tn">${esc(nm(k))} ${symH(k)}${k.dead ? ' <span class="dead">(ر)</span>' : ""}</span>
-      <span class="tk">${EDIT.on && !n ? "✎ صحّح أو أضف" : n ? `<span class="tleaves" aria-hidden="true">${"<i></i>".repeat(Math.min(5, Math.ceil(Math.log2(d + 1))))}</span>افتح الفرع ›` : isF(k) ? "صفحتها ›" : "صفحته ›"}</span></a>`;
+      ${EDIT.on && !n ? `<span class="tk">✎ صحّح أو أضف</span>` : n ? `<span class="tk"><span class="tleaves" aria-hidden="true">${"<i></i>".repeat(Math.min(5, Math.ceil(Math.log2(d + 1))))}</span><span class="tgo" aria-hidden="true">‹</span></span>` : ""}</a>`;
 }
 const plural = (n, one, two, few, many) => n === 1 ? one : n === 2 ? two : n <= 10 ? `${AR(n)} ${few}` : `${AR(n)} ${many}`;
 const app = document.getElementById("app");
 // ---------- الواجهة: الموقع يفتح على الشجرة مباشرة (الجد بشير وأبناؤه)، وفوقها العنوان والبحث
 function heroHtml(){
-  const me = ME.get(), gens = Math.max(...DATA.people.map(depthOf));
-  return `<section class="hero">
-      <div class="hero-in">
-        <div>
-          <h1 class="hero-t">عائلة البشيراب</h1>
-          <p class="hero-sub">ذرية الجد بشير<br>${AR(DATA.people.length)} فرداً في ${AR(gens)} أجيال</p>
-          ${me ? `<p class="hero-hi">أهلاً بك يا <a href="${hashOf(me)}">${esc(P[me].name)}</a></p>` : `<p class="hero-hi"><a href="#" id="heroMe">هل أنت من العائلة؟ اعرف صلتك بها</a></p>`}
-        </div>
-        <svg class="hero-art" viewBox="0 0 380 300" aria-hidden="true">
-          <g stroke="#e8c86e" stroke-width="5" fill="none" stroke-linecap="round"><path d="M190 62 V105 M70 105 H310 M70 105 V140 M190 105 V140 M310 105 V140"/>
-          <path d="M70 180 V205 M40 205 H100 M40 205 V230 M100 205 V230 M310 180 V205 M280 205 H340 M280 205 V230 M340 205 V230"/></g>
-          <rect x="140" y="20" width="100" height="44" rx="14" fill="#f5e6b0"/>
-          <g fill="#2c6a7d" stroke="#e8c86e" stroke-width="3"><rect x="25" y="140" width="90" height="40" rx="12"/><rect x="145" y="140" width="90" height="40" rx="12"/><rect x="265" y="140" width="90" height="40" rx="12"/></g>
-          <g fill="#dbe8ec"><rect x="22" y="230" width="36" height="32" rx="9"/><rect x="82" y="230" width="36" height="32" rx="9"/><rect x="262" y="230" width="36" height="32" rx="9"/><rect x="322" y="230" width="36" height="32" rx="9"/></g>
-        </svg>
-      </div>
+  const me = ME.get();
+  return `<section class="hero c">
+      <div class="hc-top"><h1 class="hero-t">عائلة البشيراب</h1><span class="hero-sub">ذرية الجد بشير · ${AR(DATA.people.length)} فرداً</span></div>
       <div class="searchbox hero-search" id="herosearch"><input type="search" placeholder="ابحث عن أي اسم في العائلة…" aria-label="ابحث عن اسم في العائلة" autocomplete="off"><div class="results"></div></div>
+      ${me ? "" : `<a href="#" id="heroMe" class="hero-me">هل أنت من العائلة؟ اعرف صلتك بها ›</a>`}
     </section>`;
 }
 function homeTail(){
   return `<a class="funban" href="#fun"><span class="fbi" aria-hidden="true">🎯</span><span class="fbt"><b>تسلَّ مع العائلة</b><small>لعبة «ابن مَن؟»، ومعلومات طريفة، وتعرّف على أقاربك</small></span><span class="fbgo" aria-hidden="true">›</span></a>
     <div id="a2hs"></div>
-    <div class="chips" style="margin-top:18px">
-      <a class="btn" href="${DATA.pdf}" download="${esc(DATA.pdfName)}">تحميل كتاب العائلة PDF</a>
-      <a class="btn ghost" href="#edit">صحّح أو أضف إلى الشجرة</a>
-    </div>
-    <h2>دليل الرموز</h2>
-    <div class="legend">
-      <span class="chip m">اسم</span> ذكر
-      <span class="chip f">اسم</span> أنثى
-      <span><span class="chip m dd" style="cursor:default">اسم <span class="dead">(ر)</span></span> متوفى، رحمه الله</span>
-      <span>⚭ متزوج من</span>
-      ${unk("معلومة ناقصة")}
-    </div>`;
+    <p class="legend1"><span class="lg m"></span>ذكر <span class="lg f"></span>أنثى <span class="lg dd"></span>متوفى (ر) <span class="lg leaf"></span>لا أبناء مسجلون</p>`;
 }
 function wireHome(){
   wireSearch(document.getElementById("herosearch"), (pp, inp) => { inp.value = ""; location.hash = hashOf(pp.id); });
@@ -779,35 +779,35 @@ function HINT(k){ if (k in HINTS) return HINTS[k]; let n = 0; try { n = +localSt
 function upChain(p){ const out = []; let q = upParent(p); while (q) { out.unshift(q); q = upParent(q); } return out; }
 function viewTree(at, home){
   at = at && P[at] ? at : ROOT;
-  const h = P[at], kids = kidsOf(h), par = upParent(h), nd = descendants(at).size;
+  const h = P[at], kids = kidsOf(h), nd = descendants(at).size, isRoot = at === ROOT;
   const kg = {}; kids.forEach(k => (kg[k.group || ""] ||= []).push(k));
-  const card = k => tcardHtml(k, at === MAIN || at === ROOT);
-  const gen = depthOf(h);
-  const grpLbl = g => g + (g.startsWith("الزوجة") && !g.includes("(") && !g.includes(":") && (at === MAIN || at === ROOT) ? " (الاسم غير معروف)" : "");
+  const card = k => tcardHtml(k, at === MAIN || isRoot);
+  const grpLbl = g => g + (g.startsWith("الزوجة") && !g.includes("(") && !g.includes(":") && (at === MAIN || isRoot) ? " (الاسم غير معروف)" : "");
   const path = upChain(h);
-  app.innerHTML = (home ? heroHtml() : `<h1>${at === ROOT ? "الشجرة" : "فرع " + esc(nm(h))}</h1>`) + `
-    <p class="lead">${HINT("tree") ? "اضغط على أي اسم لتنزل إلى أبنائه، وعلى الأسماء في الأعلى لتصعد. " : ""}<a href="#list-${at.replace(/\./g, "-")}" style="color:var(--teal2)">عرض كقائمة</a></p>
-    <div class="tview">
-      ${path.length ? `<nav class="tpath" aria-label="المسار">${path.map(a => `<a href="${tid(a.id)}">${esc(a.name)}</a>`).join(" ‹ ")} ‹ <b>${esc(h.name)}</b></nav>` : ""}
-      <div class="thead ${G[h.gender]} ${h.dead ? "dd" : ""}" data-id="${at}">
-        <div class="thn">${esc(nm(h))} ${symH(h)}${h.dead ? ' <span class="dead">(ر)</span>' : ""}</div>
-        <div class="ths">${at === ROOT ? "الجد الأكبر" : esc(shortName(h, 6))}</div>
-        ${at !== ROOT ? `<div class="tgen">${GENNAME(gen)} من الجد بشير</div>` : ""}
+  const kidsTxt = kids.length ? plural(kids.length, "ابن واحد", "ابنان", "أبناء", "ابناً") : "لا أبناء مسجلون";
+  // رأس الفرع: الجد بطاقة ذهبية بسيطة، وغيره الاسم والنسب والجيل والزوج والعدد وزرّان فقط
+  const head = isRoot
+    ? `<a class="thead root" data-id="${at}" href="${hashOf(at)}"><span class="hcrown" aria-hidden="true">✦</span>
+        ${home ? `<b class="thn">${esc(h.name)}${deadMark(h)}</b>` : `<h1 class="thn">${esc(h.name)}${deadMark(h)}</h1>`}
+        <span class="ths">الجد الأكبر · ${AR(kids.length)} من الأبناء والبنات · ذريته المسجلة ${AR(nd)}</span></a>`
+    : `<div class="thead ${G[h.gender]} ${h.dead ? "dd" : ""}" data-id="${at}">
+        <h1 class="thn">${esc(nm(h))}${deadMark(h)}</h1>
+        <div class="ths">${esc(shortName(h, 6))}</div>
+        <div class="tgen">${GENNAME(depthOf(h))} من الجد بشير</div>
         ${h.spouse ? `<div class="ths">⚭ ${esc(h.spouse)}</div>` : ""}
-        <div class="thc">${kids.length ? plural(kids.length, "ابن واحد", "ابنان", "أبناء", "ابناً") : "لا أبناء مسجلون"}${nd > kids.length ? ` · ذرية مسجلة ${AR(nd)}` : ""}</div>
-        <div class="chips"><a class="btn ghost sm" href="${hashOf(at)}">${isF(h) ? "صفحتها" : "صفحته"} الكاملة</a>
-          <a class="btn sm" href="${eid(at)}">✎ صحّح أو أضف</a>
-          ${par ? `<a class="btn ghost sm" href="${tid(par.id)}">↑ ${esc(par.name)}</a>` : ""}
-          ${nd > 2 ? `<button class="btn ghost sm" type="button" id="tdice" title="انزل إلى فرع عشوائي من ذريته">🎲 مفاجأة</button>` : ""}</div>
-      </div>
+        <div class="thc">${kidsTxt}${nd > kids.length ? ` · ذرية مسجلة ${AR(nd)}` : ""}</div>
+        <div class="chips"><a class="btn ghost sm" href="${hashOf(at)}">${isF(h) ? "صفحتها" : "صفحته"}</a><a class="btn ghost sm" href="${eid(at)}">✎ صحّح أو أضف</a></div>
+      </div>`;
+  app.innerHTML = (home ? heroHtml() : "") + `
+    <div class="tview">
+      <div class="tbar">${path.length ? `<nav class="tpath" aria-label="المسار">${path.map(a => `<a href="${tid(a.id)}">${esc(a.name)}</a>`).join(" ‹ ")} ‹ <b>${esc(h.name)}</b></nav>` : `<span class="thint">${HINT("tree") ? "اضغط أي اسم لتنزل إلى أبنائه" : ""}</span>`}
+        <a class="tlist" href="#list-${at.replace(/\./g, "-")}">☰ قائمة</a></div>
+      ${head}
       ${kids.length ? `<div class="tkids"><div class="tvline"></div>` + Object.entries(kg).map(([g, ks]) => `<div class="tgroup">${g ? `<div class="tglbl">${esc(grpLbl(g))}</div>` : ""}<div class="tgrid">${ks.map(card).join("")}</div></div>`).join("") + `</div>` : ""}
       ${h.unknown ? `<div class="chips" style="justify-content:center;margin-top:12px">${unk(h.unknown)}</div>` : ""}
     </div>`;
   if (home) { app.insertAdjacentHTML("beforeend", homeTail()); wireHome(); }
   app.querySelectorAll(".tkids .tcard").forEach((c, i) => c.style.setProperty("--i", Math.min(i, 14)));
-  const dice = document.getElementById("tdice");
-  if (dice) dice.onclick = () => { const ds = [...descendants(at)].filter(x => P[x].kids.length); const pool = ds.length ? ds : [...descendants(at)];
-    location.hash = tid(pool[Math.floor(Math.random() * pool.length)]); };
 }
 
 // ---------- الشجرة كقائمة (فرع واحد في كل مرة)
@@ -1352,7 +1352,7 @@ function renderRoute(vt){
   document.getElementById("tabmore").classList.toggle("on", ["stats", "fix", "edit", "edits", "editfam"].includes(v));
   app.classList.remove("fade"); if (!vt) { void app.offsetWidth; app.classList.add("fade"); }
   const h1 = app.querySelector("h1");
-  document.title = (h1 && !isHome ? h1.textContent.replace(/رحم(ه|ها) الله/,"").trim() + " · " : "") + "عائلة البشيراب";
+  document.title = (h1 && !isHome ? h1.textContent.replace(/رحم(ه|ها) الله/,"").replace(/\s*\(ر\)،?/g,"").trim() + " · " : "") + "عائلة البشيراب";
   if (FIRST) FIRST = false; else if (h1) { h1.setAttribute("tabindex", "-1"); h1.focus({preventScroll: true}); }
   window.scrollTo(0, back && SCROLL[h] ? SCROLL[h] : 0);
 }
