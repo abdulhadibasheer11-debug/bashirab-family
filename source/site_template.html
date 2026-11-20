@@ -406,6 +406,14 @@ section[tabindex="-1"]:focus{outline:none}
 .gopts{display:grid;gap:10px}
 .gopt{font:inherit;font-size:18px;padding:13px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer;transition:transform .12s,background .2s}
 .gopt:hover:not(:disabled){border-color:var(--teal2);transform:translateY(-1px)}
+.gopt{display:flex;align-items:center;justify-content:center;gap:8px;position:relative}
+.gmark{position:absolute;inset-inline-start:14px;font-size:20px;font-weight:700}
+.gopt.ok .gmark:before{content:"✓";color:#3f7a2a}.gopt.no .gmark:before{content:"✗";color:#b04a2c}
+.gres{font-size:19px;font-weight:700;margin:0 0 4px}.gres.ok{color:#3f7a2a}.gres.no{color:#b04a2c}.gres b{color:var(--ink)}
+.gnas{font-size:14.5px;color:var(--muted);margin:6px 0 4px!important}
+.lrung.hl{background:#e7f4e1;border-color:#5b8c3a;border-width:2px;font-weight:700}
+.lrung.self{font-weight:700;border-width:2px}
+.gfb .btn{margin-top:14px;width:100%;font-size:17px;padding:12px}
 .gopt.ok{background:#e7f4e1;border-color:#5b8c3a;animation:pop .35s}
 .gopt.no{background:#fbe9e7;border-color:#c0603a;animation:shake .4s}
 .gopt:disabled{cursor:default;color:var(--ink);opacity:1}
@@ -480,7 +488,10 @@ function lineage(p){ // الاسم مع النسب
 }
 function shortName(p, n=4){
   if (!p.father && !p.father_txt && p.mother) return p.name + (isF(p)?" بنت ":" ابن ") + P[p.mother].name;
-  return lineage(p).split(" ").slice(0, n).join(" ");
+  const parts = [p.name]; let q = p, w = p.name.split(" ").length;
+  while (w < n && q.father && P[q.father]) { q = P[q.father]; parts.push(q.name); w += q.name.split(" ").length; }
+  if (w < n && !p.father && p.father_txt) parts.push(p.father_txt);
+  return parts.join(" ");
 }
 function ancestorsLine(p){ const out=[]; let q=p; while(q.father && P[q.father]){q=P[q.father]; out.unshift(q);} return out; }
 function kidsOf(p){ return p.kids.map(id => P[id]); }
@@ -886,8 +897,8 @@ function FACTS(){
   out.push(`الجد محمد بشير له ${AR(mk)} من الأبناء والبنات من ثلاث زوجات، وذريته المسجلة ${AR(descendants(MAIN).size)} شخصاً.`);
   return FACTS_C = out.sort(() => Math.random() - .5);
 }
-function ladder(p){ const up = [p, ...(() => { const a = []; let q = upParent(p); while (q) { a.push(q); q = upParent(q); } return a; })()].reverse();
-  return `<div class="ladder">${up.map((a, i) => `<a href="${hashOf(a.id)}" class="lrung ${G[a.gender]}" style="--i:${i}">${esc(a.name)}</a>`).join('<span class="larr" aria-hidden="true">←</span>')}</div>`; }
+function ladder(p, hl){ const up = [p, ...(() => { const a = []; let q = upParent(p); while (q) { a.push(q); q = upParent(q); } return a; })()].reverse();
+  return `<div class="ladder">${up.map((a, i) => `<a href="${hashOf(a.id)}" class="lrung ${G[a.gender]} ${a.id === hl ? "hl" : ""} ${a.id === p.id ? "self" : ""}" style="--i:${i}">${esc(a.name)}</a>`).join('<span class="larr" aria-hidden="true">←</span>')}</div>`; }
 function meetHtml(p){
   const f = p.father && P[p.father], by = f ? shortName(f, 4) : p.father_txt || (p.mother && P[p.mother] ? shortName(P[p.mother], 4) : "");
   return `<a class="meetname ${G[p.gender]}" href="${hashOf(p.id)}">${esc(nm(p))}${deadMark(p)}</a>
@@ -906,7 +917,10 @@ function makeQ(){
     const gf = f.father && P[f.father];
     const kind = gf && gf.id !== ROOT && Math.random() < .4 ? "gf" : "f";
     const ans = kind === "gf" ? gf : f;
-    const lbl = x => shortName(x, 3);
+    const lbl = x => { if (x.id === ROOT) return "الجد الأكبر بشير"; const a = [x.name]; let q = x;   // الاسم واسم الأب والجد كاملة
+      while (a.length < 3 && q.father && P[q.father]) { q = P[q.father]; a.push(q.name); }
+      if (a.length === 1) { if (x.father_txt) a.push(x.father_txt); else if (x.mother && P[x.mother]) a.push((isF(x) ? "بنت " : "ابن ") + P[x.mother].name); }
+      return a.join(" "); };
     // لا يُقبل خيار يكون هو أيضاً إجابة صحيحة لشخص آخر بالاسم نفسه (الأسماء تتكرر)
     const fits = x => kind === "gf" ? kidsOf(x).some(c => c.name === f.name && kidsOf(c).some(k => k.name === p.name)) : kidsOf(x).some(k => k.name === p.name);
     const pool = DATA.people.filter(x => x.kids.length && isM(x) && x.id !== ans.id && Math.abs(depthOf(x) - depthOf(ans)) <= 1 && lbl(x) !== lbl(ans) && !fits(x));
@@ -931,7 +945,7 @@ function drawQ(){
   box.innerHTML = `<div class="gtop"><span>السؤال ${AR(GAME.i + 1)} من ${AR(GAME.q.length)}</span><span class="gscore">⭐ ${AR(GAME.score)}</span></div>
     <div class="gbar"><i style="width:${GAME.i / GAME.q.length * 100}%"></i></div>
     <div class="gq">${q.txt}</div>
-    <div class="gopts">${q.opts.map(o => `<button type="button" class="gopt" data-id="${o.id}">${esc(o.t)}</button>`).join("")}</div>
+    <div class="gopts">${q.opts.map(o => `<button type="button" class="gopt" data-id="${o.id}"><span class="gmark" aria-hidden="true"></span>${esc(o.t)}</button>`).join("")}</div>
     <div class="gfb" id="gfb" aria-live="polite"></div>`;
   box.querySelectorAll(".gopt").forEach(b => b.onclick = () => {
     if (box.dataset.ans) return; box.dataset.ans = "1";
@@ -941,10 +955,13 @@ function drawQ(){
     if (!ok) b.classList.add("no");
     if (ok) burst(b);
     box.querySelector(".gscore").textContent = "⭐ " + AR(GAME.score);
-    document.getElementById("gfb").innerHTML = `<p>${ok ? rnd(["أحسنت! 🎉", "صحيح! 👏", "ممتاز! 🌟", "تمام! ✨"]) : "ليس تماماً 🙂"} النسب: ${ladder(q.p)}</p>
+    const A = P[q.ans];
+    document.getElementById("gfb").innerHTML = `<p class="gres ${ok ? "ok" : "no"}">${ok ? rnd(["أحسنت! 🎉", "صحيح! 👏", "ممتاز! 🌟", "تمام! ✨"]) : `ليس تماماً 🙂 الإجابة: <b>${esc(q.opts.find(o => o.id === q.ans).t)}</b>`}</p>
+      <p class="gnas">نسب ${esc(q.p.name)} حتى الجد بشير:</p>${ladder(q.p, A.id)}
       <button class="btn" type="button" id="gnext">${GAME.i + 1 < GAME.q.length ? "السؤال التالي ›" : "النتيجة ›"}</button>`;
     document.getElementById("gnext").onclick = () => { GAME.i++; delete box.dataset.ans; drawQ(); };
     document.getElementById("gnext").focus({preventScroll: true});
+    setTimeout(() => document.getElementById("gnext").scrollIntoView({block: "nearest", behavior: "smooth"}), 120);
   });
 }
 function drawEnd(box){
