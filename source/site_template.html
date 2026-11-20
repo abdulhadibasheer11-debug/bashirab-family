@@ -813,6 +813,9 @@ function viewPerson(id){
 }
 
 // ---------- الشجرة التفاعلية: الشخص المختار رأسٌ وتحته أبناؤه
+// سطر الإرشاد يظهر في أول زيارتين للصفحة فقط
+const HINTS = {};
+function HINT(k){ if (k in HINTS) return HINTS[k]; let n = 0; try { n = +localStorage.getItem("bashirab_hint_" + k) || 0; localStorage.setItem("bashirab_hint_" + k, n + 1); } catch (e) {} return HINTS[k] = n < 2; }
 function upChain(p){ const out = []; let q = upParent(p); while (q) { out.unshift(q); q = upParent(q); } return out; }
 function viewTree(at){
   at = at && P[at] ? at : ROOT;
@@ -823,7 +826,7 @@ function viewTree(at){
   const grpLbl = g => g + (g.startsWith("الزوجة") && !g.includes("(") && !g.includes(":") && (at === MAIN || at === ROOT) ? " (الاسم غير معروف)" : "");
   const path = upChain(h);
   app.innerHTML = `<h1>الشجرة</h1>
-    <p class="lead">اضغط على أي اسم لتنزل إلى أبنائه، وعلى الأسماء في الأعلى لتصعد. <a href="#list-${at.replace(/\./g, "-")}" style="color:var(--teal2)">عرض كقائمة</a></p>
+    <p class="lead">${HINT("tree") ? "اضغط على أي اسم لتنزل إلى أبنائه، وعلى الأسماء في الأعلى لتصعد. " : ""}<a href="#list-${at.replace(/\./g, "-")}" style="color:var(--teal2)">عرض كقائمة</a></p>
     <div class="tview">
       ${path.length ? `<nav class="tpath" aria-label="المسار">${path.map(a => `<a href="${tid(a.id)}">${esc(a.name)}</a>`).join(" ‹ ")} ‹ <b>${esc(h.name)}</b></nav>` : ""}
       <div class="thead ${G[h.gender]} ${h.dead ? "dd" : ""}" data-id="${at}">
@@ -871,10 +874,10 @@ function viewTreeList(at){
   }
   const rk = kidsOf(P[ROOT]);
   const pick = [`<a href="#list" class="${at === ROOT ? "on" : ""}">الجد وأبناؤه</a>`]
-    .concat(rk.filter(k => k.kids.length).map(k => `<a href="#list-${k.id.replace(/\./g, "-")}" class="${at === k.id ? "on" : ""}">${esc(k.name)}<small>${AR(descendants(k.id).size)}</small></a>`)).join("");
+    .concat(rk.filter(k => k.kids.length).map(k => `<a href="#list-${k.id.replace(/\./g, "-")}" class="${at === k.id ? "on" : ""}">${esc(nm(k))}<small>${AR(descendants(k.id).size)}</small></a>`)).join("");
   const crumbs = at === ROOT ? "" : `<nav class="crumbs" style="margin:0 0 10px">${ancestorsLine(P[at]).map(a => `<a href="#list-${a.id.replace(/\./g, "-")}">${esc(a.name)}</a> ‹`).join(" ")} <b>${esc(P[at].name)}</b></nav>`;
   app.innerHTML = `<h1>${at === ROOT ? "الشجرة" : "فرع " + esc(P[at].name)}</h1>
-    <p class="lead">اختر فرعاً، ثم اضغط + لفتح أسرة، واضغط الاسم لفتح صفحة الشخص. <a href="${tid(at)}" style="color:var(--teal2)">عرض البطاقات</a></p>
+    <p class="lead">${HINT("list") ? "اختر فرعاً، ثم اضغط + لفتح أسرة، واضغط الاسم لفتح صفحة الشخص. " : ""}<a href="${tid(at)}" style="color:var(--teal2)">عرض البطاقات</a></p>
     <div class="bpick">${pick}</div>
     ${crumbs}
     <div class="chips" style="margin-bottom:12px">
@@ -1013,7 +1016,8 @@ function viewStats(){
   const names = {}; DATA.people.filter(p => p.id !== ROOT).forEach(p => names[p.name] = (names[p.name] || 0) + 1);
   const topN = Object.entries(names).sort((x, y) => y[1] - x[1]).slice(0, 10);
   const big = DATA.people.slice().sort((x, y) => y.kids.length - x.kids.length).slice(0, 8);
-  const genName = d => ["", "الجد", "الأبناء", "الأحفاد", "أبناء الأحفاد", "الجيل الخامس", "الجيل السادس", "الجيل السابع", "الجيل الثامن", "الجيل التاسع"][d] || `الجيل ${AR(d)}`;
+  // نفس ترقيم رأس الفرع: أبناء الجد = الجيل الأول
+  const genName = d => d === 1 ? "الجد بشير" : GENNAME(d) + (["", "", " · الأبناء", " · الأحفاد"][d] || "");
   const males = DATA.people.filter(isM).length, females = DATA.people.filter(isF).length;
   app.innerHTML = `<h1>الإحصائيات</h1>
     <p class="lead">أرقام من البيانات المسجلة حتى الآن، وتكبر كلما أُضيفت فروع وأسماء جديدة.</p>
@@ -1025,7 +1029,7 @@ function viewStats(){
     </div>
     <div class="grid2" style="margin-top:14px">
       <section class="panel"><h2 style="margin-top:0">الذرية في كل فرع</h2><div class="bars">
-        ${bc.map(([k, n]) => `<div class="bar"><a href="#tree-${k.id.replace(/\./g, "-")}">${esc(k.name)}</a><div class="tr"><div class="fl" style="width:${Math.max(3, n / mx * 100)}%"></div></div><span class="v">${AR(n)}</span></div>`).join("")}
+        ${bc.map(([k, n]) => `<div class="bar"><a href="#tree-${k.id.replace(/\./g, "-")}">${esc(nm(k))}</a><div class="tr"><div class="fl" style="width:${Math.max(3, n / mx * 100)}%"></div></div><span class="v">${AR(n)}</span></div>`).join("")}
       </div><p class="empty" style="margin:10px 0 0">من تزوج من فرعين يُحسب في الفرعين.</p></section>
       <section class="panel"><h2 style="margin-top:0">الأجيال</h2><div class="bars">
         ${Object.entries(byGen).map(([d, n]) => `<div class="bar"><span>${genName(+d)}</span><div class="tr"><div class="fl" style="width:${Math.max(3, n / gmx * 100)}%;background:var(--gold)"></div></div><span class="v">${AR(n)}</span></div>`).join("")}
@@ -1355,6 +1359,9 @@ function renderRoute(vt){
   renderMeBar(v); renderEditBar(v);
   document.getElementById("topsearch").style.display = v === "home" ? "none" : "";
   document.body.dataset.view = v;
+  if (v === "tree") { try { sessionStorage.setItem("bashirab_lasttree", h); } catch (e) {} }
+  let lt = ""; try { lt = sessionStorage.getItem("bashirab_lasttree") || ""; } catch (e) {}
+  document.querySelectorAll('#nav a[data-v="tree"], #tabbar a[data-v="tree"]').forEach(a => a.setAttribute("href", v === "tree" || !lt ? "#tree" : "#" + lt));
   const vv = v === "edits" || v === "editfam" ? "edit" : v;
   document.querySelectorAll("#nav a, #tabbar a").forEach(a => { a.classList.toggle("on", a.dataset.v === vv); a.toggleAttribute("aria-current", a.dataset.v === vv); });
   document.getElementById("tabmore").classList.toggle("on", ["stats", "fix", "edit", "edits", "editfam", "play"].includes(v));
