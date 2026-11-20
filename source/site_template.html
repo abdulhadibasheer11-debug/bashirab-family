@@ -362,6 +362,62 @@ section[tabindex="-1"]:focus{outline:none}
 .adminonly header,.adminonly #foot,.adminonly #tabbar,.adminonly #moresheet,.adminonly #mebar,.adminonly #editbar,.adminonly #efab,.adminonly #a2hs{display:none!important}
 .adminonly body{padding-bottom:0!important}
 .adminonly main{padding-top:20px}
+
+/* الرئيسية: رأس الشجرة */
+.htopcard{display:flex;flex-direction:column;align-items:center;gap:2px;max-width:240px;margin:4px auto 0;text-decoration:none;color:var(--teal);background:linear-gradient(160deg,#fbf4dc,#f3e3a8);border:2px solid #e2c56a;border-radius:18px;padding:12px 18px;box-shadow:0 6px 18px rgba(184,144,28,.18);transition:transform .15s}
+.htopcard:hover{transform:translateY(-2px)}
+.htopcard b{font-family:Amiri,serif;font-size:30px;line-height:1.2}
+.htopcard span{font-size:14px;color:#7a6420}
+.hcrown{font-size:18px;color:var(--gold);animation:twinkle 2.6s ease-in-out infinite}
+@keyframes twinkle{50%{opacity:.35;transform:scale(.8)}}
+.tleaves{display:inline-flex;gap:2px;margin-left:6px;vertical-align:middle}
+.tleaves i{width:6px;height:6px;border-radius:50% 0;background:var(--bc,var(--teal2));opacity:.75;transform:rotate(45deg)}
+.tcard{min-height:64px}
+.tkids .tcard{animation:cardin .38s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 35ms)}
+@keyframes cardin{from{opacity:0;transform:translateY(14px) scale(.96)}}
+.tgen{display:inline-block;margin-top:6px;font-size:13.5px;color:#7a6420;background:var(--gold-bg);border:1px solid #ecd9a0;border-radius:999px;padding:1px 10px}
+/* تسلَّ مع العائلة */
+.fungrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.funcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;position:relative;overflow:hidden}
+.funcard:before{content:"";position:absolute;inset:0 0 auto 0;height:4px}
+.funcard.fact:before{background:#e8c86e}.funcard.meet:before{background:#c0603a}.funcard.play:before{background:#5b8c3a}.funcard.roots:before{background:#2c6a7d}
+.funcard p{margin:0;line-height:1.8;font-size:16px}
+.funcard .btn{align-self:flex-start;margin-top:auto}
+.funcard.play{background:linear-gradient(160deg,#f2f8ee,#fff)}
+.funcard.play:hover{box-shadow:0 6px 18px rgba(91,140,58,.18)}
+.fct{font-weight:700;color:var(--teal);font-size:17px}
+.funcard a:not(.btn):not(.lrung):not(.meetname){color:var(--teal2)}
+.meetname{font-family:Amiri,serif;font-size:26px;text-decoration:none;font-weight:700}
+.meetname.m{color:var(--m)}.meetname.f{color:var(--f)}
+.meetsub{font-size:14px!important;color:var(--muted)}
+.ladder{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:2px 0}
+.lrung{font-size:14px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:1px 9px;background:#fff;color:var(--ink);animation:cardin .35s both;animation-delay:calc(var(--i,0) * 60ms)}
+.lrung.m{border-color:var(--m)}.lrung.f{border-color:var(--f)}
+.lrung:first-child{background:var(--gold-bg);border-color:#e2c56a;font-weight:700}
+.larr{color:var(--muted);font-size:12px}
+/* اللعبة */
+.game{max-width:560px;margin:0 auto}
+.gtop{display:flex;justify-content:space-between;font-size:15px;color:var(--muted)}
+.gscore{color:var(--gold);font-weight:700}
+.gbar{height:8px;background:#e6ecee;border-radius:99px;margin:8px 0 16px;overflow:hidden}
+.gbar i{display:block;height:100%;background:linear-gradient(90deg,#5b8c3a,#b8901c);border-radius:99px;transition:width .4s}
+.gq{font-size:21px;line-height:1.7;margin-bottom:14px;text-align:center}
+.gq b{font-family:Amiri,serif;font-size:28px;color:var(--teal)}
+.gopts{display:grid;gap:10px}
+.gopt{font:inherit;font-size:18px;padding:13px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer;transition:transform .12s,background .2s}
+.gopt:hover:not(:disabled){border-color:var(--teal2);transform:translateY(-1px)}
+.gopt.ok{background:#e7f4e1;border-color:#5b8c3a;animation:pop .35s}
+.gopt.no{background:#fbe9e7;border-color:#c0603a;animation:shake .4s}
+.gopt:disabled{cursor:default;color:var(--ink);opacity:1}
+@keyframes pop{50%{transform:scale(1.05)}}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.gfb{margin-top:14px}.gfb p{line-height:1.8}
+.gend{text-align:center}
+.gbig{font-family:Amiri,serif;font-size:64px;color:var(--teal);line-height:1.2}
+.gmsg{font-size:20px;font-weight:700;color:var(--gold)}
+.confetti{position:fixed;width:9px;height:9px;border-radius:2px;pointer-events:none;z-index:50;animation:conf 1s cubic-bezier(.2,.7,.4,1) forwards}
+@keyframes conf{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+@media(prefers-reduced-motion:reduce){.tkids .tcard,.lrung,.hcrown{animation:none}}
 </style>
 </head>
 <body>
@@ -371,6 +427,7 @@ section[tabindex="-1"]:focus{outline:none}
     <a href="#" data-v="home">الرئيسية</a>
     <a href="#tree" data-v="tree">الشجرة</a>
     <a href="#relation" data-v="relation">صلة القرابة</a>
+    <a href="#play" data-v="play">العب</a>
     <a href="#stats" data-v="stats">الإحصائيات</a>
     <a href="#edit" data-v="edit">صحّح أو أضف</a>
     <a href="__PDF__" download="__PDFNAME__">تحميل الكتاب PDF</a>
@@ -392,6 +449,7 @@ section[tabindex="-1"]:focus{outline:none}
 </nav>
 <div id="moresheet"><div class="sheet" role="menu">
   <div class="grab"></div>
+  <a href="#play">🎯 لعبة: ابن مَن؟</a>
   <a href="#stats">الإحصائيات</a>
   <a href="#edit">صحّح أو أضف إلى الشجرة</a>
   <a href="#fix">اقتراح أو سؤال</a>
@@ -565,8 +623,7 @@ function tcardHtml(k, colored){
   const n = k.kids.length, d = descendants(k.id).size;
   return `<a class="tcard ${G[k.gender]} ${k.dead ? "dd" : ""} ${n ? "" : "leaf"} ${colored ? "bc" : ""}" data-id="${k.id}" ${colored ? `style="--bc:${bcol(k.id)}"` : ""} href="${n ? tid(k.id) : EDIT.on ? eid(k.id) : hashOf(k.id)}">
       <span class="tn">${esc(nm(k))} ${symH(k)}${k.dead ? ' <span class="dead">(ر)</span>' : ""}</span>
-      ${k.spouse ? `<span class="ts">⚭ ${esc(k.spouse)}</span>` : ""}
-      <span class="tk">${n ? plural(n, "ابن واحد", "ابنان", "أبناء", "ابناً") + (d > n ? ` · ذرية ${AR(d)}` : "") + " ›" : (k.unknown ? "؟ " + esc(k.unknown) : (EDIT.on ? "✎ صحّح أو أضف" : isF(k) ? "صفحتها ›" : "صفحته ›"))}</span></a>`;
+      <span class="tk">${EDIT.on && !n ? "✎ صحّح أو أضف" : n ? `<span class="tleaves" aria-hidden="true">${"<i></i>".repeat(Math.min(5, Math.ceil(Math.log2(d + 1))))}</span>افتح الفرع ›` : isF(k) ? "صفحتها ›" : "صفحته ›"}</span></a>`;
 }
 const plural = (n, one, two, few, many) => n === 1 ? one : n === 2 ? two : n <= 10 ? `${AR(n)} ${few}` : `${AR(n)} ${many}`;
 const app = document.getElementById("app");
@@ -612,25 +669,19 @@ function viewHome(){
     </section>
     <h2>شجرة العائلة</h2>
     <div class="hometree">
-      <div class="htop">${chip(P[ROOT], "hl")} <span class="cnt">الجد الأكبر</span></div>
+      <a class="htopcard" href="#tree"><span class="hcrown" aria-hidden="true">✦</span><b>${esc(P[ROOT].name)}</b><span>الجد الأكبر ${deadMark(P[ROOT])}</span></a>
       <div class="tvline"></div>
-      <div class="tglbl" style="text-align:center;margin:4px 0 10px">أبناء الجد بشير</div>
-      ${Object.entries(g0).map(([g, ks]) => `<div class="tgroup"><div class="tglbl" style="text-align:center">${esc(g ? g.replace(/^الزوجة (\S+)$/, "من الزوجة $1") : "لم يُعرف من أي الزوجتين")}</div>
+      <div class="tglbl" style="text-align:center;margin:4px 0 10px">أبناؤه وبناته — اختر أحدهم لتفتح فرعه</div>
+      ${Object.entries(g0).map(([g, ks]) => `<div class="tgroup"><div class="tglbl" style="text-align:center">${esc(g ? g.replace(/^الزوجة/, "من الزوجة") + (g.includes(":") ? "" : " (الاسم غير معروف)") : "لم يُعرف من أي الزوجتين")}</div>
         <div class="tgrid">${ks.map(k => tcardHtml(k, true)).join("")}</div></div>`).join("")}
-      <div class="tvline"></div>
-      <div class="tglbl" style="text-align:center;margin:14px 0 10px">أبناء محمد بشير بن بشير من زوجاته الثلاث</div>
-      ${Object.entries(groups).map(([g, ks]) => `<div class="tgroup"><div class="tglbl" style="text-align:center">${esc(g.replace(/^الزوجة (\S+): /, "من الزوجة $1 "))}</div>
-        <div class="tgrid">${ks.map(k => tcardHtml(k, true)).join("")}</div></div>`).join("")}
-      <p class="hnote">اضغط أي اسم لتنزل إلى أبنائه.</p>
-      <div class="hmore"><a class="btn" href="#tree">افتح الشجرة كاملة</a></div>
     </div>
-    <h2>فروع العائلة</h2>
-    <p class="empty" style="margin:0 0 8px">فروع أبناء الجد الأكبر بشير:</p>
-    <div class="bgrid">${bcardHtml(MAIN)}${sibCards}</div>
-    <p class="empty" style="margin:14px 0 8px">فروع أبناء محمد بشير:</p>
-    <div class="bgrid">${cards}</div>
-    ${others.length ? `<p class="empty" style="margin:12px 0 4px">فروع تُجمع بياناتها:</p>
-      <div class="chips">${others.map(k => chip(k)).join("")}</div>` : ""}
+    <h2>تسلَّ مع العائلة</h2>
+    <div class="fungrid">
+      <div class="funcard fact"><div class="fct">💡 هل تعلم؟</div><p id="factText"></p><button class="btn ghost sm" type="button" id="factNext">معلومة أخرى ↻</button></div>
+      <div class="funcard meet"><div class="fct">👋 تعرّف على قريب</div><div id="meetBox"></div><button class="btn ghost sm" type="button" id="meetNext">قريب آخر ↻</button></div>
+      <a class="funcard play" href="#play"><div class="fct">🎯 لعبة: ابن مَن؟</div><p>عشرة أسئلة سريعة عن أسماء العائلة. هل تعرف أبا كل شخص وجدّه؟</p><span class="btn sm">ابدأ اللعب ›</span></a>
+      <div class="funcard roots"><div class="fct">🌱 جذورك</div>${me ? rootsHtml(me) : `<p>اختر اسمك، ونريك سلسلة نسبك حتى الجد بشير، وصلتك بكل شخص في العائلة.</p><a class="btn sm" href="#" id="rootsMe">اختر اسمك</a>`}</div>
+    </div>
     <div id="a2hs"></div>
     <h2>الكتاب والتصحيحات</h2>
     <div class="chips">
@@ -657,6 +708,13 @@ function viewHome(){
     document.getElementById("yesme").onclick = () => { ME.set(pp.id); location.hash = hashOf(pp.id); };
     document.getElementById("yesme").focus();
   });
+  let fi = Math.floor(Math.random() * FACTS().length);
+  const showFact = () => { const f = FACTS(); document.getElementById("factText").innerHTML = f[fi % f.length]; fi++; };
+  showFact(); document.getElementById("factNext").onclick = showFact;
+  const showMeet = () => { document.getElementById("meetBox").innerHTML = meetHtml(randomPerson()); };
+  showMeet(); document.getElementById("meetNext").onclick = showMeet;
+  const rm = document.getElementById("rootsMe");
+  if (rm) rm.onclick = e => { e.preventDefault(); document.getElementById("moreme").click(); };
   const hm = document.getElementById("heroMe");
   if (hm) hm.onclick = e => { e.preventDefault(); document.getElementById("moreme").click(); };
 }
@@ -729,8 +787,9 @@ function viewTree(at){
   at = at && P[at] ? at : ROOT;
   const h = P[at], kids = kidsOf(h), par = upParent(h), nd = descendants(at).size;
   const kg = {}; kids.forEach(k => (kg[k.group || ""] ||= []).push(k));
-  const card = k => tcardHtml(k, at === MAIN);
-  const grpLbl = g => g + (g.startsWith("الزوجة") && !g.includes("(") && !g.includes(":") && at === MAIN ? " (الاسم غير معروف)" : "");
+  const card = k => tcardHtml(k, at === MAIN || at === ROOT);
+  const gen = depthOf(h);
+  const grpLbl = g => g + (g.startsWith("الزوجة") && !g.includes("(") && !g.includes(":") && (at === MAIN || at === ROOT) ? " (الاسم غير معروف)" : "");
   const path = upChain(h);
   app.innerHTML = `<h1>الشجرة</h1>
     <p class="lead">اضغط على أي اسم لتنزل إلى أبنائه، وعلى الأسماء في الأعلى لتصعد. <a href="#list-${at.replace(/\./g, "-")}" style="color:var(--teal2)">عرض كقائمة</a></p>
@@ -739,15 +798,21 @@ function viewTree(at){
       <div class="thead ${G[h.gender]} ${h.dead ? "dd" : ""}" data-id="${at}">
         <div class="thn">${esc(nm(h))} ${symH(h)}${h.dead ? ' <span class="dead">(ر)</span>' : ""}</div>
         <div class="ths">${at === ROOT ? "الجد الأكبر" : esc(shortName(h, 6))}</div>
+        ${at !== ROOT ? `<div class="tgen">${GENNAME(gen)} من الجد بشير</div>` : ""}
         ${h.spouse ? `<div class="ths">⚭ ${esc(h.spouse)}</div>` : ""}
         <div class="thc">${kids.length ? plural(kids.length, "ابن واحد", "ابنان", "أبناء", "ابناً") : "لا أبناء مسجلون"}${nd > kids.length ? ` · ذرية مسجلة ${AR(nd)}` : ""}</div>
         <div class="chips"><a class="btn ghost sm" href="${hashOf(at)}">${isF(h) ? "صفحتها" : "صفحته"} الكاملة</a>
           <a class="btn sm" href="${eid(at)}">✎ صحّح أو أضف</a>
-          ${par ? `<a class="btn ghost sm" href="${tid(par.id)}">↑ ${esc(par.name)}</a>` : ""}</div>
+          ${par ? `<a class="btn ghost sm" href="${tid(par.id)}">↑ ${esc(par.name)}</a>` : ""}
+          ${nd > 2 ? `<button class="btn ghost sm" type="button" id="tdice" title="انزل إلى فرع عشوائي من ذريته">🎲 مفاجأة</button>` : ""}</div>
       </div>
       ${kids.length ? `<div class="tkids"><div class="tvline"></div>` + Object.entries(kg).map(([g, ks]) => `<div class="tgroup">${g ? `<div class="tglbl">${esc(grpLbl(g))}</div>` : ""}<div class="tgrid">${ks.map(card).join("")}</div></div>`).join("") + `</div>` : ""}
       ${h.unknown ? `<div class="chips" style="justify-content:center;margin-top:12px">${unk(h.unknown)}</div>` : ""}
     </div>`;
+  app.querySelectorAll(".tkids .tcard").forEach((c, i) => c.style.setProperty("--i", Math.min(i, 14)));
+  const dice = document.getElementById("tdice");
+  if (dice) dice.onclick = () => { const ds = [...descendants(at)].filter(x => P[x].kids.length); const pool = ds.length ? ds : [...descendants(at)];
+    location.hash = tid(pool[Math.floor(Math.random() * pool.length)]); };
 }
 
 // ---------- الشجرة كقائمة (فرع واحد في كل مرة)
@@ -788,6 +853,117 @@ function viewTreeList(at){
   app.querySelectorAll("button.tog").forEach(b => b.onclick = () => { const id = b.dataset.id; OPEN.has(id) ? OPEN.delete(id) : OPEN.add(id); viewTreeList(at); const nb = app.querySelector(`button.tog[data-id="${id}"]`); if (nb) nb.focus(); });
   document.getElementById("openAll").onclick = () => { OPEN.add(at); descendants(at).forEach(k => P[k].kids.length && OPEN.add(k)); viewTreeList(at); };
   document.getElementById("closeAll").onclick = () => { OPEN.clear(); OPEN.add(at); viewTreeList(at); };
+}
+
+
+// ---------- التسلية: معلومات، قريب عشوائي، جذورك، لعبة «ابن مَن؟»
+const GENORD = ["", "الجيل الأول", "الجيل الثاني", "الجيل الثالث", "الجيل الرابع", "الجيل الخامس", "الجيل السادس", "الجيل السابع", "الجيل الثامن", "الجيل التاسع", "الجيل العاشر"];
+const GENNAME = d => GENORD[d - 1] || `الجيل ${AR(d - 1)}`;   // أبناء الجد = الجيل الأول
+const rnd = a => a[Math.floor(Math.random() * a.length)];
+const LIVE = () => DATA.people.filter(p => p.id !== ROOT);
+function randomPerson(){ const a = LIVE().filter(p => upParent(p)); return rnd(a); }
+let FACTS_C = null;
+function FACTS(){
+  if (FACTS_C) return FACTS_C;
+  const ps = LIVE(), out = [];
+  const cnt = arr => { const m = {}; arr.forEach(x => m[x] = (m[x] || 0) + 1); return Object.entries(m).sort((a, b) => b[1] - a[1]); };
+  const mN = cnt(ps.filter(isM).map(p => p.name)), fN = cnt(ps.filter(isF).map(p => p.name));
+  out.push(`أكثر اسم للرجال في العائلة هو <b>${esc(mN[0][0])}</b>: يحمله ${AR(mN[0][1])} شخصاً، ويليه ${esc(mN[1][0])} (${AR(mN[1][1])}).`);
+  out.push(`أكثر اسم للنساء في العائلة هو <b>${esc(fN[0][0])}</b>: تحمله ${AR(fN[0][1])} من بنات العائلة، وتليه ${esc(fN[1][0])} (${AR(fN[1][1])}).`);
+  const big = [...ps].sort((a, b) => b.kids.length - a.kids.length)[0];
+  out.push(`أكبر أسرة مسجلة: <a href="${tid(big.id)}">${esc(shortName(big, 4))}</a>، ${isF(big) ? "لها" : "له"} ${AR(big.kids.length)} من الأبناء والبنات.`);
+  const deep = [...ps].sort((a, b) => depthOf(b) - depthOf(a))[0];
+  out.push(`أطول سلسلة نسب مسجلة: <a href="${hashOf(deep.id)}">${esc(lineage(deep))}</a> — ${AR(depthOf(deep))} أجيال حتى الجد بشير.`);
+  const sameGf = ps.filter(p => { const f = upParent(p), g = f && upParent(f); return g && g.name === p.name && g.id !== ROOT; }).length;
+  if (sameGf) out.push(`${AR(sameGf)} من أفراد العائلة سُمّوا باسم جدّهم تماماً، وهي عادة قديمة لإحياء اسم الجد.`);
+  const al = ps.filter(p => p.alias).length;
+  out.push(`${AR(al)} من أفراد العائلة لهم ألقاب يُعرفون بها، مثل «حانجمت» و«عبدون» و«شامة».`);
+  const rk = kidsOf(P[ROOT]).map(k => [k, descendants(k.id).size]).sort((a, b) => b[1] - a[1]);
+  out.push(`أكبر فروع الجد بشير فرع <a href="${tid(rk[0][0].id)}">${esc(nm(rk[0][0]))}</a> بذرية مسجلة ${AR(rk[0][1])} شخصاً، ويليه فرع ${esc(rk[1][0].name)} (${AR(rk[1][1])}).`);
+  const gens = Math.max(...ps.map(depthOf)) - 1;
+  out.push(`تمتد الشجرة ${AR(gens)} أجيال تحت الجد بشير، وفيها حتى الآن ${AR(ps.filter(isM).length)} رجلاً و${AR(ps.filter(isF).length)} امرأة.`);
+  const mk = kidsOf(P[MAIN]).length;
+  out.push(`الجد محمد بشير له ${AR(mk)} من الأبناء والبنات من ثلاث زوجات، وذريته المسجلة ${AR(descendants(MAIN).size)} شخصاً.`);
+  return FACTS_C = out.sort(() => Math.random() - .5);
+}
+function ladder(p){ const up = [p, ...(() => { const a = []; let q = upParent(p); while (q) { a.push(q); q = upParent(q); } return a; })()].reverse();
+  return `<div class="ladder">${up.map((a, i) => `<a href="${hashOf(a.id)}" class="lrung ${G[a.gender]}" style="--i:${i}">${esc(a.name)}</a>`).join('<span class="larr" aria-hidden="true">←</span>')}</div>`; }
+function meetHtml(p){
+  const f = p.father && P[p.father], by = f ? shortName(f, 4) : p.father_txt || (p.mother && P[p.mother] ? shortName(P[p.mother], 4) : "");
+  return `<a class="meetname ${G[p.gender]}" href="${hashOf(p.id)}">${esc(nm(p))}${deadMark(p)}</a>
+    <p class="meetsub">${isF(p) ? "بنت" : "ابن"} ${esc(by)} · ${GENNAME(depthOf(p))}</p>${ladder(p)}`;
+}
+function rootsHtml(me){ const p = P[me];
+  return `<p>أنت ${GENNAME(depthOf(p))} من الجد بشير. هذه سلسلة نسبك:</p>${ladder(p)}<a class="btn ghost sm" href="${hashOf(me)}">صفحتك</a>`; }
+
+const GAME = {q: [], i: 0, score: 0, best: 0};
+try { GAME.best = +localStorage.getItem("bashirab_best") || 0; } catch (e) {}
+function makeQ(){
+  // سؤال: أبو فلان أو جدّه، والخيارات أسماء مختلفة نصاً
+  for (let t = 0; t < 60; t++) {
+    const p = rnd(LIVE()), f = p.father && P[p.father];
+    if (!f || f.id === ROOT) continue;
+    const gf = f.father && P[f.father];
+    const kind = gf && gf.id !== ROOT && Math.random() < .4 ? "gf" : "f";
+    const ans = kind === "gf" ? gf : f;
+    const lbl = x => shortName(x, 3);
+    // لا يُقبل خيار يكون هو أيضاً إجابة صحيحة لشخص آخر بالاسم نفسه (الأسماء تتكرر)
+    const fits = x => kind === "gf" ? kidsOf(x).some(c => c.name === f.name && kidsOf(c).some(k => k.name === p.name)) : kidsOf(x).some(k => k.name === p.name);
+    const pool = DATA.people.filter(x => x.kids.length && isM(x) && x.id !== ans.id && Math.abs(depthOf(x) - depthOf(ans)) <= 1 && lbl(x) !== lbl(ans) && !fits(x));
+    const opts = [ans]; const seen = new Set([lbl(ans)]);
+    for (let k = 0; k < 40 && opts.length < 3; k++) { const x = rnd(pool); if (x && !seen.has(lbl(x))) { seen.add(lbl(x)); opts.push(x); } }
+    if (opts.length < 3) continue;
+    const who = kind === "gf" ? `${isF(p) ? "بنت" : "ابن"} ${esc(f.name)} — فمن جدّ${isF(p) ? "ها" : "ه"}؟` : `${isF(p) ? "بنت" : "ابن"} مَن؟`;
+    return {p, ans: ans.id, kind, txt: `<b>${esc(nm(p))}</b> ${who}`, opts: opts.sort(() => Math.random() - .5).map(x => ({id: x.id, t: lbl(x)}))};
+  }
+}
+function viewPlay(){
+  app.innerHTML = `<h1>لعبة: ابن مَن؟</h1>
+    <p class="lead">عشرة أسئلة عن أسماء العائلة. اختر الإجابة، وتعلّم من كل سؤال.</p>
+    <div class="game panel" id="game"></div>`;
+  if (!GAME.q.length || GAME.done) startGame(); else drawQ();
+}
+function startGame(){ GAME.q = Array.from({length: 10}, makeQ).filter(Boolean); GAME.i = 0; GAME.score = 0; GAME.done = false; drawQ(); }
+function drawQ(){
+  const box = document.getElementById("game"); if (!box) return;
+  if (GAME.i >= GAME.q.length) return drawEnd(box);
+  const q = GAME.q[GAME.i];
+  box.innerHTML = `<div class="gtop"><span>السؤال ${AR(GAME.i + 1)} من ${AR(GAME.q.length)}</span><span class="gscore">⭐ ${AR(GAME.score)}</span></div>
+    <div class="gbar"><i style="width:${GAME.i / GAME.q.length * 100}%"></i></div>
+    <div class="gq">${q.txt}</div>
+    <div class="gopts">${q.opts.map(o => `<button type="button" class="gopt" data-id="${o.id}">${esc(o.t)}</button>`).join("")}</div>
+    <div class="gfb" id="gfb" aria-live="polite"></div>`;
+  box.querySelectorAll(".gopt").forEach(b => b.onclick = () => {
+    if (box.dataset.ans) return; box.dataset.ans = "1";
+    const ok = b.dataset.id === q.ans;
+    if (ok) GAME.score++;
+    box.querySelectorAll(".gopt").forEach(x => { x.disabled = true; if (x.dataset.id === q.ans) x.classList.add("ok"); });
+    if (!ok) b.classList.add("no");
+    if (ok) burst(b);
+    box.querySelector(".gscore").textContent = "⭐ " + AR(GAME.score);
+    document.getElementById("gfb").innerHTML = `<p>${ok ? rnd(["أحسنت! 🎉", "صحيح! 👏", "ممتاز! 🌟", "تمام! ✨"]) : "ليس تماماً 🙂"} النسب: ${ladder(q.p)}</p>
+      <button class="btn" type="button" id="gnext">${GAME.i + 1 < GAME.q.length ? "السؤال التالي ›" : "النتيجة ›"}</button>`;
+    document.getElementById("gnext").onclick = () => { GAME.i++; delete box.dataset.ans; drawQ(); };
+    document.getElementById("gnext").focus({preventScroll: true});
+  });
+}
+function drawEnd(box){
+  GAME.done = true;
+  const s = GAME.score, n = GAME.q.length, nb = s > GAME.best;
+  if (nb) { GAME.best = s; try { localStorage.setItem("bashirab_best", s); } catch (e) {} }
+  const t = s === n ? "علّامة العائلة! تعرف الجميع 🏆" : s >= 7 ? "رائع! أنت من أهل المعرفة بالأنساب 🌟" : s >= 4 ? "جيد! الشجرة تنتظرك لتعرف المزيد 🌿" : "بداية طيبة! تصفّح الشجرة ثم أعد المحاولة 🌱";
+  box.innerHTML = `<div class="gend"><div class="gbig">${AR(s)} من ${AR(n)}</div><p class="gmsg">${t}</p>
+    <p class="empty">${nb && s ? "رقم قياسي جديد على جهازك! 🎉" : `أفضل نتيجة لك: ${AR(GAME.best)} من ${AR(n)}`}</p>
+    <div class="chips" style="justify-content:center"><button class="btn" type="button" id="again">العب مرة أخرى ↻</button><a class="btn ghost" href="#tree">تصفّح الشجرة</a></div></div>`;
+  document.getElementById("again").onclick = () => startGame();
+  if (s >= 7) burst(box.querySelector(".gbig"), 28);
+}
+function burst(el, n = 14){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const r = el.getBoundingClientRect(), cols = ["#b8901c", "#2c6a7d", "#c0603a", "#5b8c3a", "#a0527a", "#e8c86e"];
+  for (let i = 0; i < n; i++) { const c = document.createElement("i"); c.className = "confetti";
+    c.style.cssText = `left:${r.left + r.width / 2}px;top:${r.top + r.height / 2}px;background:${cols[i % cols.length]};--dx:${(Math.random() - .5) * 260}px;--dy:${-60 - Math.random() * 160}px;--r:${Math.random() * 720}deg`;
+    document.body.appendChild(c); setTimeout(() => c.remove(), 1100); }
 }
 
 // ---------- الإحصائيات
@@ -1131,6 +1307,7 @@ function renderRoute(vt){
   else if (h === "tree" || h.startsWith("tree-")) { v = "tree"; viewTree(h.slice(5).replace(/-/g, ".")); }
   else if (h === "list" || h.startsWith("list-")) { v = "tree"; viewTreeList(h.slice(5).replace(/-/g, ".")); }
   else if (h === "stats") { v = "stats"; viewStats(); }
+  else if (h === "play") { v = "play"; viewPlay(); }
   else if (h === "relation") { v = "relation"; viewRelation(); }
   else if (h === "fix") { v = "fix"; viewFix(); }
   else if (h === "edit") { v = "edit"; viewEditStart(); }
@@ -1143,7 +1320,7 @@ function renderRoute(vt){
   document.body.dataset.view = v;
   const vv = v === "edits" || v === "editfam" ? "edit" : v;
   document.querySelectorAll("#nav a, #tabbar a").forEach(a => { a.classList.toggle("on", a.dataset.v === vv); a.toggleAttribute("aria-current", a.dataset.v === vv); });
-  document.getElementById("tabmore").classList.toggle("on", ["stats", "fix", "edit", "edits", "editfam"].includes(v));
+  document.getElementById("tabmore").classList.toggle("on", ["stats", "fix", "edit", "edits", "editfam", "play"].includes(v));
   app.classList.remove("fade"); if (!vt) { void app.offsetWidth; app.classList.add("fade"); }
   const h1 = app.querySelector("h1");
   document.title = (h1 && v !== "home" ? h1.textContent.replace(/رحم(ه|ها) الله/,"").trim() + " · " : "") + "عائلة البشيراب";
