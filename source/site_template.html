@@ -504,6 +504,7 @@ footer a{display:inline-block;padding:8px 4px}
 .sendnow{display:flex;justify-content:center;margin-top:12px;font-size:18px;padding:13px;background:#3f7a2a;border-color:#3f7a2a}
 .efsave #ef-del,.efsave #ef-rm{margin-inline-start:auto}
 @media(max-width:700px){.efsave #ef-del,.efsave #ef-rm{margin-top:18px;margin-inline-start:0}}
+.miss{color:#8a6d1c;font-weight:500;font-size:.8em}
 </style>
 </head>
 <body>
@@ -576,7 +577,7 @@ function spouseOf(p){ // زوج من داخل الشجرة (عبر الأبنا�
   kidsOf(p).forEach(k => { [k.father,k.mother].forEach(x => { if (x && x !== p.id && P[x]) s.add(x); }); });
   return [...s].map(id => P[id]);
 }
-function deadMark(p, full){ return p.dead ? (full ? ` <span class="deadfull">${isF(p) ? "رحمها" : "رحمه"} الله</span>` : ` <span class="dead" aria-hidden="true" data-t="${isF(p) ? "رحمها" : "رحمه"} الله">(ر)</span><span class="sr-only">، ${isF(p) ? "رحمها" : "رحمه"} الله</span>`) : ""; }
+function deadMark(p, full){ if (p.missing && !p.dead) return ` <span class="miss">(مفقود)</span>`; return p.dead ? (full ? ` <span class="deadfull">${isF(p) ? "رحمها" : "رحمه"} الله</span>` : ` <span class="dead" aria-hidden="true" data-t="${isF(p) ? "رحمها" : "رحمه"} الله">(ر)</span><span class="sr-only">، ${isF(p) ? "رحمها" : "رحمه"} الله</span>`) : ""; }
 const symH = p => "";   // الجنس يظهر باللون (أزرق للذكر، وردي للأنثى)
 // الاسم مع اللقب (بالرطانة) — لصاحبه فقط، ولا يدخل في نسب أبنائه
 const nm = p => p.name + (p.alias ? ` «${p.alias}»` : "");
@@ -639,7 +640,7 @@ function wireSearch(box, onPick){
   const live = document.getElementById("live");
   const draw = () => {
     res.innerHTML = (fuzzy ? `<div class="rnote">لم نجد الاسم كما كُتب، هل تقصد:</div>` : "") +
-      items.map((p,i) => `<button data-i="${i}">${esc(nm(p))} <span aria-hidden="true">${p.dead?' (ر)':''}</span><small>${esc(shortName(p,6))}${p.dead ? (isF(p)?"، رحمها الله":"، رحمه الله") : ""}</small></button>`).join("")
+      items.map((p,i) => `<button data-i="${i}">${esc(nm(p))} ${deadMark(p)}<small>${esc(shortName(p,6))}</small></button>`).join("")
       + (more ? `<div class="rnote">وهناك ${AR(more)} غيرهم. اكتب اسم الأب بعد الاسم لتضييق البحث.</div>` : "")
       || (inp.value.trim() ? `<div class="rnote">لا توجد نتائج. اكتب الاسم الأول فقط.</div>` : "");
     res.classList.toggle("show", !!inp.value.trim());
@@ -768,7 +769,7 @@ function viewPerson(id){
       <div class="avatar ${G[p.gender]} ${br ? "bc" : ""}" ${br ? `style="--bc:${bcol(br)}"` : ""} aria-hidden="true">${esc((p.name.replace(/^(ال|عبد ال?)/, "") || p.name).charAt(0))}</div>
       <div style="flex:1;min-width:220px">
         <h1 class="pname" tabindex="-1" id="ptitle">${esc(nm(p))}</h1>
-        ${p.dead ? `<div class="prh">${isF(p) ? "رحمها" : "رحمه"} الله</div>` : ""}
+        ${p.dead ? `<div class="prh">${isF(p) ? "رحمها" : "رحمه"} الله</div>` : p.missing ? `<div class="prh">مفقود</div>` : ""}
         <div class="full">${esc(shortName(p, 8))}</div>
         <div class="facts">${facts.join("")}</div>
         ${meBox(p)}
@@ -817,7 +818,7 @@ function viewTree(at, home){
         <span class="ths">الجد الأكبر · ${AR(kids.length)} من الأبناء والبنات · ذريته المسجلة ${AR(nd)}</span></a>`
     : `<div class="thead ${G[h.gender]} ${h.dead ? "dd" : ""}" data-id="${at}">
         <h1 class="thn">${esc(nm(h))}</h1>
-        ${h.dead ? `<div class="trh">${isF(h) ? "رحمها" : "رحمه"} الله</div>` : ""}
+        ${h.dead ? `<div class="trh">${isF(h) ? "رحمها" : "رحمه"} الله</div>` : h.missing ? `<div class="trh">مفقود</div>` : ""}
         <div class="ths">${esc(shortName(h, 6))}</div>
         <div class="tgen">${GENNAME(depthOf(h))} من الجد بشير</div>
         ${h.spouse ? `<div class="ths">⚭ ${esc(h.spouse)}</div>` : ""}
