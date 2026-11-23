@@ -473,6 +473,14 @@ section[tabindex="-1"]:focus{outline:none}
 .tbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;min-height:30px}
 .tbar .tpath{margin:0}
 .thint{font-size:14.5px;color:var(--muted)}
+.tbtns{display:flex;gap:6px;flex:none}
+button.tlist{font:inherit;font-size:14px;cursor:pointer}
+button.tlist[aria-expanded="true"]{background:var(--gold-bg);border-color:#e2c56a;color:#7a6420}
+.lgpop{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin:0 0 12px;box-shadow:0 6px 18px rgba(31,78,95,.1);animation:fadein .18s ease}
+.lgrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:15px;padding:5px 0;border-bottom:1px solid #eef2f3}
+.lgrow:last-child{border:0}
+.lgc{display:inline-block;font-size:14px;padding:2px 10px;border-radius:8px;border:1.5px solid}
+.lgc.m{border-color:var(--m);background:var(--m-bg)}.lgc.f{border-color:var(--f);background:var(--f-bg)}.lgc.dd{border-color:#97a2a6;background:#eceeee}.lgc.leaf{border-style:dashed;border-color:var(--m)}
 .tlist{flex:none;font-size:14px;color:var(--teal2);text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 12px}
 h1.thn{font-family:inherit;color:inherit;margin:0;font-size:24px}
 .thead.root{display:flex;flex-direction:column;align-items:center;gap:2px;max-width:340px;text-decoration:none;color:var(--teal);background:linear-gradient(160deg,#fbf4dc,#f3e3a8);border:2px solid #e2c56a;box-shadow:0 6px 18px rgba(184,144,28,.18)}
@@ -705,8 +713,7 @@ function heroHtml(){
 }
 function homeTail(){
   return `<a class="funban" href="#fun"><span class="fbi" aria-hidden="true">🎯</span><span class="fbt"><b>تسلَّ مع العائلة</b><small>لعبة «ابن مَن؟»، ومعلومات طريفة، وتعرّف على أقاربك</small></span><span class="fbgo" aria-hidden="true">›</span></a>
-    <div id="a2hs"></div>
-    <p class="legend1"><span class="lg m"></span>ذكر <span class="lg f"></span>أنثى <span class="lg dd"></span>متوفى (ر) <span class="lg leaf"></span>لا أبناء مسجلون</p>`;
+    <div id="a2hs"></div>`;
 }
 function wireHome(){
   wireSearch(document.getElementById("herosearch"), (pp, inp) => { inp.value = ""; location.hash = hashOf(pp.id); });
@@ -807,12 +814,22 @@ function viewTree(at, home){
   app.innerHTML = (home ? heroHtml() : "") + `
     <div class="tview">
       <div class="tbar">${path.length ? `<nav class="tpath" aria-label="المسار">${path.map(a => `<a href="${tid(a.id)}">${esc(a.name)}</a>`).join(" ‹ ")} ‹ <b>${esc(h.name)}</b></nav>` : `<span class="thint">${HINT("tree") ? "اضغط أي اسم لتنزل إلى أبنائه" : ""}</span>`}
-        <a class="tlist" href="#list-${at.replace(/\./g, "-")}">☰ قائمة</a></div>
+        <span class="tbtns"><button type="button" class="tlist" id="tlegend" aria-expanded="false">؟ الرموز</button><a class="tlist" href="#list-${at.replace(/\./g, "-")}">☰ قائمة</a></span></div>
+      <div class="lgpop" id="lgpop" hidden>
+        <div class="lgrow"><span class="lgc m">اسم</span><span class="lgc f">اسم</span> الأزرق للذكور، والوردي للإناث</div>
+        <div class="lgrow"><span class="lgc dd">اسم <span class="dead">(ر)</span></span> (ر) تعني رحمه الله، والبطاقة الرمادية لمتوفى</div>
+        <div class="lgrow"><span class="tleaves"><i></i><i></i><i></i></span> الأوراق الصغيرة تدل على حجم الذرية</div>
+        <div class="lgrow"><span class="lgc leaf">اسم</span> بطاقة منقّطة: لا أبناء مسجلون</div>
+        <div class="lgrow"><span class="lgc m">علي «أبو شوك»</span> ما بين « » لقب</div>
+        <div class="lgrow"><b>⚭</b> متزوج من</div>
+      </div>
       ${head}
       ${kids.length ? `<div class="tkids"><div class="tvline"></div>` + Object.entries(kg).map(([g, ks]) => `<div class="tgroup">${g ? `<div class="tglbl">${esc(grpLbl(g))}</div>` : ""}<div class="tgrid">${ks.map(card).join("")}</div></div>`).join("") + `</div>` : ""}
       ${h.unknown ? `<div class="chips" style="justify-content:center;margin-top:12px">${unk(h.unknown)}</div>` : ""}
     </div>`;
   if (home) { app.insertAdjacentHTML("beforeend", homeTail()); wireHome(); }
+  const lb = document.getElementById("tlegend"), lp = document.getElementById("lgpop");
+  lb.onclick = () => { lp.hidden = !lp.hidden; lb.setAttribute("aria-expanded", !lp.hidden); };
   app.querySelectorAll(".tkids .tcard").forEach((c, i) => c.style.setProperty("--i", Math.min(i, 14)));
 }
 
