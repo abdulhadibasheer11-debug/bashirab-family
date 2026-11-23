@@ -101,7 +101,11 @@ h2{font-size:19px;margin:28px 0 10px;color:var(--teal)}
 .chip.hl{box-shadow:0 0 0 2.5px var(--gold)}
 .chip:hover:not(.dash){filter:brightness(.96)}
 .sym{color:#6a7a80;font-size:.9em}
-.dead{color:#5f6a6e;font-weight:500;font-size:.85em}
+.dead{color:#5f6a6e;font-weight:500;font-size:.85em;cursor:help;padding:2px 3px;margin:-2px -1px;border-radius:6px}
+.dead:hover{background:rgba(0,0,0,.06)}
+.rtip{position:absolute;z-index:60;background:#1f4e5f;color:#fff;font-size:15px;padding:5px 12px;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.2);pointer-events:none;animation:fadein .15s ease;white-space:nowrap}
+.rtip:after{content:"";position:absolute;top:100%;left:50%;margin-left:-6px;border:6px solid transparent;border-top-color:#1f4e5f}
+.trh{font-size:14.5px;color:#6b777b;margin-top:-2px}
 .deadfull{font-size:.45em;color:#6b777b;font-weight:500;vertical-align:middle}
 .chip.m.dd,.chip.f.dd,.chip.u.dd{border-color:#97a2a6;background:#eceeee}
 .grouplbl{font-size:14px;color:var(--muted);margin:10px 0 6px}
@@ -552,7 +556,7 @@ function spouseOf(p){ // زوج من داخل الشجرة (عبر الأبنا�
   kidsOf(p).forEach(k => { [k.father,k.mother].forEach(x => { if (x && x !== p.id && P[x]) s.add(x); }); });
   return [...s].map(id => P[id]);
 }
-function deadMark(p, full){ return p.dead ? (full ? ` <span class="deadfull">${isF(p) ? "رحمها" : "رحمه"} الله</span>` : ` <span class="dead" aria-hidden="true">(ر)</span><span class="sr-only">، ${isF(p) ? "رحمها" : "رحمه"} الله</span>`) : ""; }
+function deadMark(p, full){ return p.dead ? (full ? ` <span class="deadfull">${isF(p) ? "رحمها" : "رحمه"} الله</span>` : ` <span class="dead" aria-hidden="true" data-t="${isF(p) ? "رحمها" : "رحمه"} الله">(ر)</span><span class="sr-only">، ${isF(p) ? "رحمها" : "رحمه"} الله</span>`) : ""; }
 const symH = p => "";   // الجنس يظهر باللون (أزرق للذكر، وردي للأنثى)
 // الاسم مع اللقب (بالرطانة) — لصاحبه فقط، ولا يدخل في نسب أبنائه
 const nm = p => p.name + (p.alias ? ` «${p.alias}»` : "");
@@ -685,7 +689,7 @@ const bcol = id => BCOL[id] || BNEUTRAL;
 function tcardHtml(k, colored){
   const n = k.kids.length, d = descendants(k.id).size;
   return `<a class="tcard ${G[k.gender]} ${k.dead ? "dd" : ""} ${n ? "" : "leaf"} ${colored ? "bc" : ""}" data-id="${k.id}" ${colored ? `style="--bc:${bcol(k.id)}"` : ""} href="${n ? tid(k.id) : EDIT.on ? eid(k.id) : hashOf(k.id)}">
-      <span class="tn">${esc(nm(k))} ${symH(k)}${k.dead ? ' <span class="dead">(ر)</span>' : ""}</span>
+      <span class="tn">${esc(nm(k))} ${symH(k)}${deadMark(k)}</span>
       ${EDIT.on && !n ? `<span class="tk">✎ صحّح أو أضف</span>` : n ? `<span class="tk"><span class="tleaves" aria-hidden="true">${"<i></i>".repeat(Math.min(5, Math.ceil(Math.log2(d + 1))))}</span><span class="tgo" aria-hidden="true">‹</span></span>` : ""}</a>`;
 }
 const plural = (n, one, two, few, many) => n === 1 ? one : n === 2 ? two : n <= 10 ? `${AR(n)} ${few}` : `${AR(n)} ${many}`;
@@ -755,7 +759,7 @@ function viewPerson(id){
     </div></div>
     <section class="panel" aria-label="الأسرة"><div class="mini">
       ${parentsRow ? `<div class="row"><span class="sr-only">الوالدان:</span>${parentsRow}</div><div class="vline"></div>` : ""}
-      <div class="row"><span class="chip ${G[p.gender]} ${p.dead ? "dd" : ""} me" aria-hidden="true">${esc(nm(p))} ${symH(p)}${p.dead ? ` <span class="dead">(ر)</span>` : ""}</span>
+      <div class="row"><span class="chip ${G[p.gender]} ${p.dead ? "dd" : ""} me" aria-hidden="true">${esc(nm(p))} ${symH(p)}${deadMark(p)}</span>
         ${spouses.map(s => `<span style="align-self:center;color:var(--f)" aria-hidden="true">⚭</span><span class="sr-only">${isF(p)?"زوجها":"زوجته"}:</span>` + chip(s, "", shortName(s,4))).join("")}</div>
     </div></section>
     <div class="grid2">
@@ -788,10 +792,12 @@ function viewTree(at, home){
   // رأس الفرع: الجد بطاقة ذهبية بسيطة، وغيره الاسم والنسب والجيل والزوج والعدد وزرّان فقط
   const head = isRoot
     ? `<a class="thead root" data-id="${at}" href="${hashOf(at)}"><span class="hcrown" aria-hidden="true">✦</span>
-        ${home ? `<b class="thn">${esc(h.name)}${deadMark(h)}</b>` : `<h1 class="thn">${esc(h.name)}${deadMark(h)}</h1>`}
+        ${home ? `<b class="thn">${esc(h.name)}</b>` : `<h1 class="thn">${esc(h.name)}</h1>`}
+        ${h.dead ? `<span class="trh">رحمه الله</span>` : ""}
         <span class="ths">الجد الأكبر · ${AR(kids.length)} من الأبناء والبنات · ذريته المسجلة ${AR(nd)}</span></a>`
     : `<div class="thead ${G[h.gender]} ${h.dead ? "dd" : ""}" data-id="${at}">
-        <h1 class="thn">${esc(nm(h))}${deadMark(h)}</h1>
+        <h1 class="thn">${esc(nm(h))}</h1>
+        ${h.dead ? `<div class="trh">${isF(h) ? "رحمها" : "رحمه"} الله</div>` : ""}
         <div class="ths">${esc(shortName(h, 6))}</div>
         <div class="tgen">${GENNAME(depthOf(h))} من الجد بشير</div>
         ${h.spouse ? `<div class="ths">⚭ ${esc(h.spouse)}</div>` : ""}
@@ -1827,6 +1833,21 @@ function viewAdmin(){
   })();
 }
 
+// لمس «(ر)» في أي مكان يُظهر معناها فوقها (ولا يفتح الرابط الذي هي فيه)
+let TIP = null;
+document.addEventListener("click", e => {
+  const d = e.target.closest && e.target.closest(".dead[data-t]");
+  if (TIP) { TIP.remove(); TIP = null; }
+  if (!d) return;
+  e.preventDefault(); e.stopPropagation();
+  const r = d.getBoundingClientRect();
+  TIP = document.createElement("div"); TIP.className = "rtip"; TIP.textContent = d.dataset.t;
+  document.body.appendChild(TIP);
+  const w = TIP.offsetWidth;
+  TIP.style.left = Math.max(6, Math.min(innerWidth - w - 6, r.left + r.width / 2 - w / 2)) + "px";
+  TIP.style.top = (r.top + scrollY - TIP.offsetHeight - 8) + "px";
+  const t = TIP; setTimeout(() => { if (TIP === t) { t.remove(); TIP = null; } }, 2200);
+}, true);
 addEventListener("hashchange", route);
 route();
 </script>
