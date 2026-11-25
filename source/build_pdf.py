@@ -499,14 +499,19 @@ page("shumma", chead("shumma") + '<div class="grid2">' + "".join(cells) + '</div
 
 CUR[0] = "amnarest"
 cells = [
-  mini("1.13", chip(by_id["1.13.1"], ["أبناؤها: " + "، ".join(c["name"] for c in children("1.13.1"))]) +
+  mini("1.13", chip(by_id["1.13.1"], [spouse_txt(by_id["1.13.1"]), "أبناؤها: " + "، ".join(c["name"] for c in children("1.13.1"))]) +
                chip(by_id["1.13.1.1"], ["بنت تومة", kids_summary(by_id["1.13.1.1"])]) +
+               chip(by_id["1.13.1.3"], ["ابن تومة", spouse_txt(by_id["1.13.1.3"]), kids_summary(by_id["1.13.1.3"])]) +
+               chip(by_id["1.13.1.4"], ["ابن تومة", kids_summary(by_id["1.13.1.4"])]) +
+               chip(by_id["1.13.1.5"], ["ابن تومة", spouse_txt(by_id["1.13.1.5"]), kids_summary(by_id["1.13.1.5"]), "روعة: ابنها أواب وبنت"]) +
                chip(by_id["1.13.1.2"], ["بنت تومة", spouse_txt(by_id["1.13.1.2"]), f"← صفحة {pg('jara')}"]) +
                chip(by_id["1.13.2"], ["بنت فاطمة «دوشة»"]) + chip(by_id["1.13.3"]) + chip(by_id["1.13.4"]), 1.1),
   mini("1.14", chip(by_id["1.14.1"], ["ابنها الوحيد", "ابنه عبد العاطي (ر)"]), 1.3),
 ]
 mark(by_id["1.14.1.1"])
 for c in children("1.13.1"): mark(c)
+for _h in ("1.13.1.3", "1.13.1.4", "1.13.1.5", "1.13.1.5.1"):
+    for c in children(_h): mark(c)
 page("amnarest", chead("amnarest") + '<div class="grid2">' + "".join(cells) + '</div>' +
      note("فاطمة «دوشة» وفدلم بنتا محمد بشير من زوجته الثالثة آمنة الحاج، وما زالت بقية بيانات ذريتهما تُجمع. "
           "محاسن بنت تومة بنت فاطمة «دوشة» زوجة سر الختم بن جارة بنت بشير. "
